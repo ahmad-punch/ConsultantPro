@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { ActionButton } from "@/components/admin/action-form";
 import { ActiveBadge } from "@/components/admin/badges";
 import { FormDialog } from "@/components/admin/form-dialog";
+import { HelpButton } from "@/components/admin/help-button";
 import { ActorForm, TeamMemberForm } from "@/components/admin/forms/team-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
@@ -24,6 +25,7 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeader
+        helpTopic="settings"
         title="Settings"
         description="Configuration comes from environment variables and src/lib/site.ts; change it there and redeploy."
       />
@@ -61,7 +63,10 @@ async function Settings() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Acting as</CardTitle>
+          <CardTitle className="flex items-center gap-1.5">
+            Acting as
+            <HelpButton topic="settings" section="acting-as" />
+          </CardTitle>
           <CardDescription>
             Everyone shares one password, so pick who you are on this browser. Your name goes on case notes and stage changes.
           </CardDescription>

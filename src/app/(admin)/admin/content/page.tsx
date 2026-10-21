@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { FilterBar } from "@/components/admin/filter-bar";
 import { enumOptions, formatDate, formatShortDate } from "@/components/admin/format";
 import { FormDialog } from "@/components/admin/form-dialog";
+import { HelpButton } from "@/components/admin/help-button";
 import { ContentForm, MarkPostedForm } from "@/components/admin/forms/content-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
@@ -32,6 +33,7 @@ export default function ContentPage({ searchParams }: PageProps<"/admin/content"
   return (
     <>
       <PageHeader
+        helpTopic="content"
         title="Content"
         description="Posts, scripts, guides, videos and emails, grouped by the week they are scheduled for."
         actions={
@@ -91,10 +93,13 @@ async function ContentCalendar({ searchParams }: { searchParams: PageProps<"/adm
         <EmptyState title="No content items" description="Add ideas here; schedule them when they are drafted." />
       ) : (
         <div className="space-y-6">
-          {ordered.map((g) => (
+          {ordered.map((g, gi) => (
             <section key={g.title}>
-              <h2 className="mb-2 text-sm font-semibold">
-                {g.title} <span className="font-normal text-muted-foreground">· {g.items.length}</span>
+              <h2 className="mb-2 flex items-center gap-1 text-sm font-semibold">
+                <span>
+                  {g.title} <span className="font-normal text-muted-foreground">· {g.items.length}</span>
+                </span>
+                {gi === 0 ? <HelpButton topic="content" section="mark-posted" className="ml-auto" /> : null}
               </h2>
               <ul className="divide-y overflow-hidden rounded-xl border bg-card">
                 {g.items.map((item) => {

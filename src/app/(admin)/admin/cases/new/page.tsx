@@ -20,6 +20,7 @@ export default function NewCasePage({ searchParams }: PageProps<"/admin/cases/ne
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
+        helpTopic="cases"
         title="New case"
         description="The price defaults to the list price in the catalogue; change it if you quoted differently."
       />

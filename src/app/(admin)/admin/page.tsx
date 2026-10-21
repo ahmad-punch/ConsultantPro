@@ -19,7 +19,7 @@ export const metadata = { title: "Dashboard" };
 export default function DashboardPage() {
   return (
     <>
-      <PageHeader title="Today" description="What needs doing now: next actions, memos due, new leads and the pipeline." />
+      <PageHeader title="Today" helpTopic="dashboard" description="What needs doing now: next actions, memos due, new leads and the pipeline." />
       <Suspense
         fallback={
           <div className="space-y-6">

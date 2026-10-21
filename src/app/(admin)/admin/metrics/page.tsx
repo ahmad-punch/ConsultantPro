@@ -5,6 +5,7 @@ import { Suspense } from "react";
 
 import { EmptyState } from "@/components/admin/empty-state";
 import { formatDate, formatUsd, toDateInput } from "@/components/admin/format";
+import { HelpButton } from "@/components/admin/help-button";
 import { PageHeader } from "@/components/admin/page-header";
 import { CardsSkeleton, TableSkeleton } from "@/components/admin/skeletons";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export default function MetricsPage({ searchParams }: PageProps<"/admin/metrics"
   return (
     <>
       <PageHeader
+        helpTopic="metrics"
         title="Metrics"
         description="The 90-day gate from the business plan (section 10.2): go if all six pass within 60 days of the first sale."
       />
@@ -296,6 +298,16 @@ async function Metrics({ searchParams }: { searchParams: SP }) {
   );
 }
 
+/** Help section slug for each gate metric key (H3s in docs/help/screens/metrics.md). */
+const GATE_HELP: Record<string, string> = {
+  paid: "paid-cases",
+  blended: "revenue-per-paid-interaction",
+  referrals: "referrals",
+  retainers: "retainer-sign-ups",
+  memo: "median-days-to-memo",
+  recommend: "would-recommend",
+};
+
 function GateCard({ g }: { g: GateMetric }) {
   const Icon = g.pass === null ? CircleDashedIcon : g.pass ? CheckCircle2Icon : XCircleIcon;
   return (
@@ -308,7 +320,10 @@ function GateCard({ g }: { g: GateMetric }) {
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-medium">{g.label}</p>
+        <p className="flex items-center gap-1 text-sm font-medium">
+          {g.label}
+          <HelpButton topic="metrics" section={[GATE_HELP[g.key], "the-six-gate-metrics"].filter((s): s is string => !!s)} label={g.label} />
+        </p>
         <Icon
           className={cn(
             "size-5 shrink-0",

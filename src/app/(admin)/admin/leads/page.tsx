@@ -32,6 +32,7 @@ export default function LeadsPage({ searchParams }: PageProps<"/admin/leads">) {
   return (
     <>
       <PageHeader
+        helpTopic="leads"
         title="Leads"
         description="Everyone who asked for help. Contact new leads within a working day, then convert or close them."
         actions={

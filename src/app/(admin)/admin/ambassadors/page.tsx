@@ -18,6 +18,7 @@ export default function AmbassadorsPage() {
   return (
     <>
       <PageHeader
+        helpTopic="ambassadors"
         title="Ambassadors"
         description="Community members who refer clients for a commission on paid cases."
         actions={

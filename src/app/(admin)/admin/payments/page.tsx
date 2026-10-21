@@ -48,6 +48,7 @@ async function Payments({ searchParams }: { searchParams: PageProps<"/admin/paym
   return (
     <>
       <PageHeader
+        helpTopic="payments"
         title="Payments"
         description="Money received for cases and retainers. Recording a case payment also updates the case's payment status."
         actions={

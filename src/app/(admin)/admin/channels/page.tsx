@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { FilterBar } from "@/components/admin/filter-bar";
 import { ageLabel, buildHref, enumOptions, formatDate } from "@/components/admin/format";
 import { FormDialog } from "@/components/admin/form-dialog";
+import { HelpButton } from "@/components/admin/help-button";
 import { ChannelForm } from "@/components/admin/forms/channel-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
@@ -52,6 +53,7 @@ async function Channels({ searchParams }: { searchParams: PageProps<"/admin/chan
   return (
     <>
       <PageHeader
+        helpTopic="channels"
         title="Channels"
         description="WhatsApp groups, Facebook groups, associations and community centres we post in. Set a cadence to get reminders."
         actions={
@@ -108,8 +110,9 @@ async function Channels({ searchParams }: { searchParams: PageProps<"/admin/chan
                 <TableHead className="hidden lg:table-cell">Ambassador</TableHead>
                 <TableHead className="hidden sm:table-cell">Last post</TableHead>
                 <TableHead className="hidden sm:table-cell">Next due</TableHead>
-                <TableHead>
+                <TableHead className="text-right">
                   <span className="sr-only">Actions</span>
+                  <HelpButton topic="channels" section="log-post" />
                 </TableHead>
               </TableRow>
             </TableHeader>

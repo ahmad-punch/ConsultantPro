@@ -35,6 +35,7 @@ export default function CasesPage({ searchParams }: PageProps<"/admin/cases">) {
   return (
     <>
       <PageHeader
+        helpTopic="cases"
         title="Cases"
         description="Every paid or prospective matter, from intake to close."
         actions={

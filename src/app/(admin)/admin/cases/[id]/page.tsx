@@ -15,6 +15,7 @@ import { PaymentBadge, StageBadge, ToneBadge } from "@/components/admin/badges";
 import { EmptyState } from "@/components/admin/empty-state";
 import { dueLabel, formatDate, formatDateTime, formatUsd } from "@/components/admin/format";
 import { FormDialog } from "@/components/admin/form-dialog";
+import { HelpButton } from "@/components/admin/help-button";
 import { CaseEditForm } from "@/components/admin/forms/case-edit-form";
 import { AddNoteForm, CloseCaseForm, SetStageForm } from "@/components/admin/forms/case-stage-forms";
 import { PaymentForm } from "@/components/admin/forms/payment-form";
@@ -73,6 +74,7 @@ async function CaseView({ params }: { params: PageProps<"/admin/cases/[id]">["pa
   return (
     <>
       <PageHeader
+        helpTopic="cases"
         eyebrow={
           <Link href="/admin/cases" className="inline-flex items-center gap-1 hover:text-foreground">
             <ArrowLeftIcon className="size-3" /> Cases
@@ -99,35 +101,50 @@ async function CaseView({ params }: { params: PageProps<"/admin/cases/[id]">["pa
         actions={
           <>
             {next ? (
-              <ActionButton
-                action={advanceStageAction}
-                fields={{ id: c.id }}
-                variant="default"
-                icon={<StepForwardIcon />}
-              >
-                Move to {CASE_STAGE_LABELS[next]}
-              </ActionButton>
+              <div className="inline-flex items-center gap-0.5">
+                <ActionButton
+                  action={advanceStageAction}
+                  fields={{ id: c.id }}
+                  variant="default"
+                  icon={<StepForwardIcon />}
+                >
+                  Move to {CASE_STAGE_LABELS[next]}
+                </ActionButton>
+                <HelpButton topic="cases" section="advance-stage" />
+              </div>
             ) : null}
             {hasMemo && !c.memoDeliveredAt && !isClosed ? (
-              <ActionButton action={markMemoDeliveredAction} fields={{ id: c.id }} icon={<FileCheckIcon />}>
-                Mark memo delivered
-              </ActionButton>
+              <div className="inline-flex items-center gap-0.5">
+                <ActionButton action={markMemoDeliveredAction} fields={{ id: c.id }} icon={<FileCheckIcon />}>
+                  Mark memo delivered
+                </ActionButton>
+                <HelpButton topic="cases" section="mark-memo-delivered" />
+              </div>
             ) : null}
-            <FormDialog triggerLabel="Record payment" triggerVariant="outline" triggerSize="sm" title={`Record payment for ${c.caseNumber}`}>
-              <PaymentForm caseId={c.id} defaultAmount={c.priceUsd} />
-            </FormDialog>
-            <FormDialog triggerLabel="Set stage" triggerVariant="outline" triggerSize="sm" title="Set stage" description="Use this to skip, go back, or decline. The change is logged.">
-              <SetStageForm id={c.id} stage={c.stage} />
-            </FormDialog>
-            <FormDialog
-              triggerLabel={c.stage === "closed" ? "Edit close-out" : "Close out"}
-              triggerVariant="outline"
-              triggerSize="sm"
-              title="Close out the case"
-              description="Ask the client the two feedback questions before closing."
-            >
-              <CloseCaseForm id={c.id} nps={c.nps} wouldRecommend={c.wouldRecommend} closedAt={c.closedAt} />
-            </FormDialog>
+            <div className="inline-flex items-center gap-0.5">
+              <FormDialog triggerLabel="Record payment" triggerVariant="outline" triggerSize="sm" title={`Record payment for ${c.caseNumber}`}>
+                <PaymentForm caseId={c.id} defaultAmount={c.priceUsd} />
+              </FormDialog>
+              <HelpButton topic="cases" section="record-payment" />
+            </div>
+            <div className="inline-flex items-center gap-0.5">
+              <FormDialog triggerLabel="Set stage" triggerVariant="outline" triggerSize="sm" title="Set stage" description="Use this to skip, go back, or decline. The change is logged.">
+                <SetStageForm id={c.id} stage={c.stage} />
+              </FormDialog>
+              <HelpButton topic="cases" section="set-stage" />
+            </div>
+            <div className="inline-flex items-center gap-0.5">
+              <FormDialog
+                triggerLabel={c.stage === "closed" ? "Edit close-out" : "Close out"}
+                triggerVariant="outline"
+                triggerSize="sm"
+                title="Close out the case"
+                description="Ask the client the two feedback questions before closing."
+              >
+                <CloseCaseForm id={c.id} nps={c.nps} wouldRecommend={c.wouldRecommend} closedAt={c.closedAt} />
+              </FormDialog>
+              <HelpButton topic="cases" section="close-out" />
+            </div>
           </>
         }
       />
@@ -332,38 +349,41 @@ function StageStepper({ c }: { c: CaseDetail }) {
   const offPath = !path.includes(c.stage) && !declined;
   const current = path.indexOf(c.stage);
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card p-3">
-      <ol className="flex min-w-max items-center gap-1" aria-label="Case stages">
-        {path.map((s: CaseStage, i) => {
-          const done = !declined && current > i;
-          const here = current === i;
-          return (
-            <li key={s} className="flex items-center gap-1">
-              <span
-                aria-current={here ? "step" : undefined}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
-                  here && "bg-primary text-primary-foreground",
-                  done && "bg-secondary text-secondary-foreground",
-                  !here && !done && "text-muted-foreground",
-                )}
-              >
-                {done ? <CheckIcon className="size-3" aria-hidden /> : <span className="font-mono">{i + 1}</span>}
-                {CASE_STAGE_LABELS[s]}
+    <div className="flex items-center gap-2 rounded-xl border bg-card p-3">
+      <div className="min-w-0 flex-1 overflow-x-auto">
+        <ol className="flex min-w-max items-center gap-1" aria-label="Case stages">
+          {path.map((s: CaseStage, i) => {
+            const done = !declined && current > i;
+            const here = current === i;
+            return (
+              <li key={s} className="flex items-center gap-1">
+                <span
+                  aria-current={here ? "step" : undefined}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
+                    here && "bg-primary text-primary-foreground",
+                    done && "bg-secondary text-secondary-foreground",
+                    !here && !done && "text-muted-foreground",
+                  )}
+                >
+                  {done ? <CheckIcon className="size-3" aria-hidden /> : <span className="font-mono">{i + 1}</span>}
+                  {CASE_STAGE_LABELS[s]}
+                </span>
+                {i < path.length - 1 ? <span className="h-px w-4 bg-border" aria-hidden /> : null}
+              </li>
+            );
+          })}
+          {declined || offPath ? (
+            <li className="ml-3">
+              <StageBadge stage={c.stage} />
+              <span className="ml-2 text-xs text-muted-foreground">
+                {declined ? "Declined" : "Off the usual path for this product"}
               </span>
-              {i < path.length - 1 ? <span className="h-px w-4 bg-border" aria-hidden /> : null}
             </li>
-          );
-        })}
-        {declined || offPath ? (
-          <li className="ml-3">
-            <StageBadge stage={c.stage} />
-            <span className="ml-2 text-xs text-muted-foreground">
-              {declined ? "Declined" : "Off the usual path for this product"}
-            </span>
-          </li>
-        ) : null}
-      </ol>
+          ) : null}
+        </ol>
+      </div>
+      <HelpButton topic="cases" section="advance-stage" label="Case stages" />
     </div>
   );
 }

@@ -8,6 +8,7 @@ export default function NewLeadPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
+        helpTopic="leads"
         title="New lead"
         description="Log an enquiry that came in by WhatsApp, phone or in person. Website enquiries are added automatically."
       />

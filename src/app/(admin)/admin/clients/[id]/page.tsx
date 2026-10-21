@@ -42,6 +42,7 @@ async function ClientView({ params }: { params: PageProps<"/admin/clients/[id]">
   return (
     <>
       <PageHeader
+        helpTopic="clients"
         eyebrow={
           <Link href="/admin/clients" className="inline-flex items-center gap-1 hover:text-foreground">
             <ArrowLeftIcon className="size-3" /> Clients

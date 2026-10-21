@@ -42,6 +42,7 @@ async function Retainers() {
   return (
     <>
       <PageHeader
+        helpTopic="retainers"
         title="Retainers"
         description="Family Affairs retainers: the only recurring revenue line. Record each monthly payment under Payments."
         actions={

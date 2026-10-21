@@ -20,6 +20,7 @@ export default function PartnersPage({ searchParams }: PageProps<"/admin/partner
   return (
     <>
       <PageHeader
+        helpTopic="partners"
         title="Partners"
         description="Independent advocates, errand runners, advisers and accountants. Advocates bill clients directly, on their own letterhead."
         actions={

@@ -7,6 +7,7 @@ import { ActionButton } from "@/components/admin/action-form";
 import { LeadStatusBadge, StageBadge, UrgencyBadge } from "@/components/admin/badges";
 import { formatDateTime } from "@/components/admin/format";
 import { FormDialog } from "@/components/admin/form-dialog";
+import { HelpButton } from "@/components/admin/help-button";
 import { ConvertLeadForm } from "@/components/admin/forms/convert-lead-form";
 import { LeadForm } from "@/components/admin/forms/lead-form";
 import { PageHeader } from "@/components/admin/page-header";
@@ -42,6 +43,7 @@ async function LeadDetail({ params }: { params: PageProps<"/admin/leads/[id]">["
   return (
     <>
       <PageHeader
+        helpTopic="leads"
         eyebrow={
           <Link href="/admin/leads" className="inline-flex items-center gap-1 hover:text-foreground">
             <ArrowLeftIcon className="size-3" /> Leads
@@ -132,7 +134,10 @@ async function LeadDetail({ params }: { params: PageProps<"/admin/leads/[id]">["
 
         <Card>
           <CardHeader>
-            <CardTitle>{lead.convertedCase ? "Converted" : "Convert to case"}</CardTitle>
+            <CardTitle className="flex items-center gap-1.5">
+              {lead.convertedCase ? "Converted" : "Convert to case"}
+              <HelpButton topic="leads" section="convert-to-case" />
+            </CardTitle>
             <CardDescription>
               {lead.convertedCase
                 ? "This lead has a case."

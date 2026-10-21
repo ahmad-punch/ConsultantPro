@@ -8,6 +8,7 @@ import { CopyButton } from "@/components/admin/copy-button";
 import { EmptyState } from "@/components/admin/empty-state";
 import { formatDate, formatUsd } from "@/components/admin/format";
 import { FormDialog } from "@/components/admin/form-dialog";
+import { HelpButton } from "@/components/admin/help-button";
 import { AmbassadorForm, PayoutForm } from "@/components/admin/forms/ambassador-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { DetailSkeleton } from "@/components/admin/skeletons";
@@ -41,6 +42,7 @@ async function AmbassadorView({ params }: { params: PageProps<"/admin/ambassador
   return (
     <>
       <PageHeader
+        helpTopic="ambassadors"
         eyebrow={
           <Link href="/admin/ambassadors" className="inline-flex items-center gap-1 hover:text-foreground">
             <ArrowLeftIcon className="size-3" /> Ambassadors
@@ -54,9 +56,12 @@ async function AmbassadorView({ params }: { params: PageProps<"/admin/ambassador
         description={`${[a.city, a.country].filter(Boolean).join(", ")} · ${a.commissionPct}% of paid case revenue${a.whatsapp ? ` · ${a.whatsapp}` : ""}`}
         actions={
           <>
-            <FormDialog triggerLabel="Record payout" triggerSize="sm" title="Record a commission payout" description={`Commission due now: ${formatUsd(a.due)}.`}>
-              <PayoutForm id={a.id} due={a.due} />
-            </FormDialog>
+            <div className="inline-flex items-center gap-0.5">
+              <FormDialog triggerLabel="Record payout" triggerSize="sm" title="Record a commission payout" description={`Commission due now: ${formatUsd(a.due)}.`}>
+                <PayoutForm id={a.id} due={a.due} />
+              </FormDialog>
+              <HelpButton topic="ambassadors" section="record-payout" />
+            </div>
             <FormDialog triggerLabel="Edit" triggerVariant="outline" triggerSize="sm" title={`Edit ${a.name}`} wide>
               <AmbassadorForm ambassador={a} />
             </FormDialog>

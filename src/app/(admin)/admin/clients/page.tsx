@@ -39,6 +39,7 @@ async function Clients({ searchParams }: { searchParams: PageProps<"/admin/clien
   return (
     <>
       <PageHeader
+        helpTopic="clients"
         title="Clients"
         description="People we have opened at least one case or retainer for."
         actions={
