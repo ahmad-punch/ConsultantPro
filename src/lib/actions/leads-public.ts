@@ -6,6 +6,7 @@
  * The in-memory limiter is per server instance; good enough for launch.
  */
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { z } from "zod";
 
 import {
@@ -16,6 +17,8 @@ import {
 } from "@/components/marketing/intake/schema";
 import { db } from "@/lib/db";
 import { leads } from "@/lib/db/schema";
+import { sendEmail } from "@/lib/email";
+import { intakeConfirmationEmail } from "@/lib/email/templates";
 import type { ActionResult } from "@/lib/validation/common";
 
 const WINDOW_MS = 10 * 60 * 1000;
@@ -83,12 +86,21 @@ export async function submitPublicIntake(
         category: values.category,
         urgency: values.urgency,
         description: values.description,
+        details: values.details ?? null,
         referralCode: cleanReferralCode(values.referralCode) || null,
         source: cleanSource(values.source),
         status: "new",
       })
       .returning({ id: leads.id });
-    return { ok: true, data: { reference: row.id.slice(0, 8).toUpperCase() } };
+    const reference = row.id.slice(0, 8).toUpperCase();
+    const email = values.email;
+    if (email) {
+      // After the response is sent; never blocks or fails the form.
+      after(async () => {
+        await sendEmail({ to: email, ...intakeConfirmationEmail({ name: values.name, reference }) });
+      });
+    }
+    return { ok: true, data: { reference } };
   } catch (error) {
     console.error("submitPublicIntake failed", error);
     return {
