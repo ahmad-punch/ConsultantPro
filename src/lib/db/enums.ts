@@ -97,6 +97,25 @@ export const PAYMENT_METHODS = ["stripe", "wise", "payoneer", "bank", "other"] a
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 export const TEAM_ROLES = ["founder", "case_manager", "ops"] as const;
+
+export const DOCUMENT_TYPES = ["invoice", "receipt", "quote", "engagement_letter", "case_summary"] as const;
+export type DocumentType = (typeof DOCUMENT_TYPES)[number];
+export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
+  invoice: "Invoice",
+  receipt: "Receipt",
+  quote: "Quote",
+  engagement_letter: "Engagement letter",
+  case_summary: "Case summary",
+};
+
+export const INVOICE_STATUSES = ["draft", "sent", "paid", "void"] as const;
+export type InvoiceStatus = (typeof INVOICE_STATUSES)[number];
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  draft: "Draft",
+  sent: "Sent",
+  paid: "Paid",
+  void: "Void",
+};
 export type TeamRole = (typeof TEAM_ROLES)[number];
 
 /* Human-readable labels. Use these in tables, badges and selects. */

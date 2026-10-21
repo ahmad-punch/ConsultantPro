@@ -9,6 +9,7 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -26,6 +27,8 @@ import {
   CONTENT_FORMATS,
   CONTENT_LANGUAGES,
   CONTENT_STATUSES,
+  DOCUMENT_TYPES,
+  INVOICE_STATUSES,
   LEAD_STATUSES,
   LEAD_URGENCIES,
   PARTNER_TYPES,
@@ -55,6 +58,8 @@ export const retainerTierEnum = pgEnum("retainer_tier", RETAINER_TIERS);
 export const retainerStatusEnum = pgEnum("retainer_status", RETAINER_STATUSES);
 export const paymentMethodEnum = pgEnum("payment_method", PAYMENT_METHODS);
 export const teamRoleEnum = pgEnum("team_role", TEAM_ROLES);
+export const documentTypeEnum = pgEnum("document_type", DOCUMENT_TYPES);
+export const invoiceStatusEnum = pgEnum("invoice_status", INVOICE_STATUSES);
 
 /* -------------------------------------------------------------- helpers */
 
@@ -92,6 +97,7 @@ export const ambassadors = pgTable(
     totalPaidUsd: integer().notNull().default(0),
     active: boolean().notNull().default(true),
     notes: text(),
+    archivedAt: ts(),
     ...timestamps,
   },
   (t) => [uniqueIndex("ambassadors_referral_code_idx").on(t.referralCode)],
@@ -108,6 +114,7 @@ export const clients = pgTable(
     city: text(),
     ambassadorId: uuid().references(() => ambassadors.id, { onDelete: "set null" }),
     notes: text(),
+    archivedAt: ts(),
     ...timestamps,
   },
   (t) => [index("clients_ambassador_id_idx").on(t.ambassadorId)],
@@ -125,6 +132,7 @@ export const partners = pgTable("partners", {
   slaDays: integer(),
   rating: integer(),
   active: boolean().notNull().default(true),
+  archivedAt: ts(),
   ...timestamps,
 });
 
@@ -141,6 +149,8 @@ export const cases = pgTable(
     stage: caseStageEnum().notNull().default("intake"),
     priceUsd: integer().notNull().default(0),
     paymentStatus: paymentStatusEnum().notNull().default("unpaid"),
+    publicToken: text().notNull().$defaultFn(() => crypto.randomUUID()),
+    archivedAt: ts(),
     paymentLink: text(),
     caseManagerId: uuid().references(() => teamMembers.id, { onDelete: "set null" }),
     partnerId: uuid().references(() => partners.id, { onDelete: "set null" }),
@@ -177,6 +187,8 @@ export const leads = pgTable(
     name: text().notNull(),
     whatsapp: text().notNull(),
     email: text(),
+    details: jsonb().$type<Record<string, string>>(),
+    archivedAt: ts(),
     country: text().notNull(),
     category: caseCategoryEnum().notNull(),
     urgency: leadUrgencyEnum().notNull().default("normal"),
@@ -221,6 +233,7 @@ export const channels = pgTable(
     cadenceDays: integer(),
     ambassadorId: uuid().references(() => ambassadors.id, { onDelete: "set null" }),
     notes: text(),
+    archivedAt: ts(),
     ...timestamps,
   },
   (t) => [index("channels_ambassador_id_idx").on(t.ambassadorId)],
@@ -238,6 +251,7 @@ export const contentItems = pgTable("content_items", {
   url: text(),
   body: text(),
   notes: text(),
+  archivedAt: ts(),
   ...timestamps,
 });
 
@@ -278,6 +292,125 @@ export const payments = pgTable(
 );
 
 /* ------------------------------------------------------------ relations */
+
+
+/* ------------------------------------------------- documents & exports */
+
+export const brandingSettings = pgTable("branding_settings", {
+  id: id(),
+  legalName: text().notNull().default(""),
+  tradingName: text().notNull().default(""),
+  addressLines: text().notNull().default(""),
+  email: text().notNull().default(""),
+  phone: text().notNull().default(""),
+  website: text().notNull().default(""),
+  logoUrl: text(),
+  primaryColor: text().notNull().default("#0F3D2E"),
+  accentColor: text().notNull().default("#B5542D"),
+  showLogo: boolean().notNull().default(true),
+  footerText: text().notNull().default(""),
+  taxLabel: text().notNull().default(""),
+  taxNumber: text().notNull().default(""),
+  bankDetails: text().notNull().default(""),
+  currency: text().notNull().default("USD"),
+  ...timestamps,
+});
+
+export const documentTemplates = pgTable(
+  "document_templates",
+  {
+    id: id(),
+    type: documentTypeEnum().notNull(),
+    name: text().notNull(),
+    isDefault: boolean().notNull().default(false),
+    title: text().notNull().default(""),
+    intro: text().notNull().default(""),
+    terms: text().notNull().default(""),
+    footer: text().notNull().default(""),
+    /** Free-form sections rendered after the main body: [{ heading, body }]. */
+    sections: jsonb().$type<Array<{ heading: string; body: string }>>().notNull().default([]),
+    /** Template-level switches, e.g. { showBankDetails: true, showSignature: false }. */
+    options: jsonb().$type<Record<string, boolean | string>>().notNull().default({}),
+    ...timestamps,
+  },
+  (t) => [index("document_templates_type_idx").on(t.type)],
+);
+
+export const invoices = pgTable(
+  "invoices",
+  {
+    id: id(),
+    invoiceNumber: text().notNull(),
+    type: documentTypeEnum().notNull().default("invoice"),
+    status: invoiceStatusEnum().notNull().default("draft"),
+    clientId: uuid().references(() => clients.id, { onDelete: "set null" }),
+    caseId: uuid().references(() => cases.id, { onDelete: "set null" }),
+    retainerId: uuid().references(() => retainers.id, { onDelete: "set null" }),
+    templateId: uuid().references(() => documentTemplates.id, { onDelete: "set null" }),
+    issueDate: ts().notNull().defaultNow(),
+    dueDate: ts(),
+    currency: text().notNull().default("USD"),
+    subtotalUsd: integer().notNull().default(0),
+    taxUsd: integer().notNull().default(0),
+    totalUsd: integer().notNull().default(0),
+    notes: text(),
+    /** Snapshot of client and branding at issue time so the PDF never changes retroactively. */
+    snapshot: jsonb().$type<Record<string, unknown>>().notNull().default({}),
+    paymentId: uuid().references(() => payments.id, { onDelete: "set null" }),
+    sentAt: ts(),
+    paidAt: ts(),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("invoices_number_idx").on(t.invoiceNumber),
+    index("invoices_client_id_idx").on(t.clientId),
+    index("invoices_case_id_idx").on(t.caseId),
+  ],
+);
+
+export const invoiceItems = pgTable(
+  "invoice_items",
+  {
+    id: id(),
+    invoiceId: uuid()
+      .notNull()
+      .references(() => invoices.id, { onDelete: "cascade" }),
+    position: integer().notNull().default(0),
+    description: text().notNull(),
+    quantity: integer().notNull().default(1),
+    unitUsd: integer().notNull().default(0),
+    amountUsd: integer().notNull().default(0),
+  },
+  (t) => [index("invoice_items_invoice_id_idx").on(t.invoiceId)],
+);
+
+export const generatedDocuments = pgTable(
+  "generated_documents",
+  {
+    id: id(),
+    type: documentTypeEnum().notNull(),
+    documentNumber: text().notNull(),
+    caseId: uuid().references(() => cases.id, { onDelete: "set null" }),
+    clientId: uuid().references(() => clients.id, { onDelete: "set null" }),
+    invoiceId: uuid().references(() => invoices.id, { onDelete: "set null" }),
+    templateId: uuid().references(() => documentTemplates.id, { onDelete: "set null" }),
+    title: text().notNull(),
+    /** Everything needed to re-render the PDF exactly as first generated. */
+    payload: jsonb().$type<Record<string, unknown>>().notNull().default({}),
+    ...timestamps,
+  },
+  (t) => [index("generated_documents_case_id_idx").on(t.caseId)],
+);
+
+export const metricsSnapshots = pgTable("metrics_snapshots", {
+  id: id(),
+  takenAt: ts().notNull().defaultNow(),
+  rangeFrom: ts(),
+  rangeTo: ts(),
+  /** The six gate metrics plus pass flags, as computed by src/lib/queries/metrics.ts. */
+  values: jsonb().$type<Record<string, number | boolean | null>>().notNull().default({}),
+  note: text(),
+});
 
 export const teamMembersRelations = relations(teamMembers, ({ many }) => ({
   cases: many(cases),
@@ -347,6 +480,25 @@ export const retainersRelations = relations(retainers, ({ one, many }) => ({
   payments: many(payments),
 }));
 
+export const invoicesRelations = relations(invoices, ({ one, many }) => ({
+  client: one(clients, { fields: [invoices.clientId], references: [clients.id] }),
+  case: one(cases, { fields: [invoices.caseId], references: [cases.id] }),
+  retainer: one(retainers, { fields: [invoices.retainerId], references: [retainers.id] }),
+  template: one(documentTemplates, { fields: [invoices.templateId], references: [documentTemplates.id] }),
+  payment: one(payments, { fields: [invoices.paymentId], references: [payments.id] }),
+  items: many(invoiceItems),
+}));
+
+export const invoiceItemsRelations = relations(invoiceItems, ({ one }) => ({
+  invoice: one(invoices, { fields: [invoiceItems.invoiceId], references: [invoices.id] }),
+}));
+
+export const generatedDocumentsRelations = relations(generatedDocuments, ({ one }) => ({
+  case: one(cases, { fields: [generatedDocuments.caseId], references: [cases.id] }),
+  client: one(clients, { fields: [generatedDocuments.clientId], references: [clients.id] }),
+  invoice: one(invoices, { fields: [generatedDocuments.invoiceId], references: [invoices.id] }),
+}));
+
 export const paymentsRelations = relations(payments, ({ one }) => ({
   case: one(cases, { fields: [payments.caseId], references: [cases.id] }),
   retainer: one(retainers, {
@@ -379,3 +531,15 @@ export type Retainer = typeof retainers.$inferSelect;
 export type NewRetainer = typeof retainers.$inferInsert;
 export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
+export type BrandingSettings = typeof brandingSettings.$inferSelect;
+export type NewBrandingSettings = typeof brandingSettings.$inferInsert;
+export type DocumentTemplate = typeof documentTemplates.$inferSelect;
+export type NewDocumentTemplate = typeof documentTemplates.$inferInsert;
+export type Invoice = typeof invoices.$inferSelect;
+export type NewInvoice = typeof invoices.$inferInsert;
+export type InvoiceItem = typeof invoiceItems.$inferSelect;
+export type NewInvoiceItem = typeof invoiceItems.$inferInsert;
+export type GeneratedDocument = typeof generatedDocuments.$inferSelect;
+export type NewGeneratedDocument = typeof generatedDocuments.$inferInsert;
+export type MetricsSnapshot = typeof metricsSnapshots.$inferSelect;
+export type NewMetricsSnapshot = typeof metricsSnapshots.$inferInsert;
