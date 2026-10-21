@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -27,6 +27,7 @@ export type CaseSort = keyof typeof CASE_SORTS;
 export function readCaseFilters(sp: SearchParams) {
   const sortKey = param(sp, "sort");
   return {
+    archived: param(sp, "archived") === "1",
     q: param(sp, "q"),
     stage: enumParam(sp, "stage", CASE_STAGES),
     category: enumParam(sp, "category", CASE_CATEGORIES),
@@ -46,6 +47,7 @@ export async function listCases(f: CaseFilters) {
     const p = likePattern(f.q);
     where.push(or(ilike(cases.caseNumber, p), ilike(cases.summary, p), ilike(clients.name, p))!);
   }
+  if (!f.archived) where.push(isNull(cases.archivedAt));
   if (f.stage) where.push(eq(cases.stage, f.stage));
   if (f.category) where.push(eq(cases.category, f.category));
   if (f.product) where.push(eq(cases.product, f.product));
@@ -70,6 +72,7 @@ export async function listCases(f: CaseFilters) {
       nextActionDue: cases.nextActionDue,
       memoDeliveredAt: cases.memoDeliveredAt,
       createdAt: cases.createdAt,
+      archivedAt: cases.archivedAt,
       clientId: clients.id,
       clientName: clients.name,
       managerName: teamMembers.name,

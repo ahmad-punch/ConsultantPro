@@ -13,6 +13,7 @@ import {
 } from "@/lib/validation/ambassadors";
 import type { FormState } from "@/lib/validation/fields";
 
+import { setArchived } from "./archive-helper";
 import { done, failed, isUniqueViolation, parseForm, revalidateAdmin, unexpected } from "./helpers";
 
 const CODE_TAKEN = "That referral code is already used by another ambassador.";
@@ -64,4 +65,14 @@ export async function recordPayoutAction(_prev: FormState, formData: FormData): 
   } catch (error) {
     return unexpected(error, "record the payout");
   }
+}
+
+export async function archiveAmbassadorAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  return setArchived("ambassadors", formData, true, "ambassador");
+}
+
+export async function unarchiveAmbassadorAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  return setArchived("ambassadors", formData, false, "ambassador");
 }

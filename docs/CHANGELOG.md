@@ -4,6 +4,10 @@ Format: Keep a Changelog. Newest first. Group by Added / Changed / Fixed / Remov
 
 ## [Unreleased]
 ### Added
+- Archive and unarchive for cases, leads, clients, partners, ambassadors, channels and content items (`archivedAt`); lists hide archived rows unless "Show archived" (`?archived=1`); metrics exclude archived rows; archiving a case writes a case note.
+- CSV import for channels and leads (paste or file, server-side zod validation, preview with per-row errors, dedupe by name+platform and by WhatsApp digits). Parser in `src/lib/import/csv-parse.ts`.
+- Category-specific questions on `/start`, saved to `leads.details`, shown on the lead page and copied into the case summary on conversion.
+- Metrics snapshots: "Save snapshot" on `/admin/metrics` and a History table (`metrics_snapshots`).
 - Repo structure, CLAUDE.md, docs skeleton, decision records 0001-0003.
 - Next.js app scaffold (App Router, TypeScript, Tailwind).
 - Foundation: dependencies (Drizzle, Neon, PGlite, zod, next-mdx-remote, react-hook-form, Vercel Analytics, lucide), shadcn/ui kit (button, card, input, textarea, select, badge, table, dialog, sheet, tabs, label, separator, dropdown-menu, field, sonner, skeleton, avatar, tooltip).
@@ -21,6 +25,11 @@ Format: Keep a Changelog. Newest first. Group by Added / Changed / Fixed / Remov
 - Help content (`docs/help/`): README with the heading contract, what-rasta-is, how-the-business-works, workflows, public-site, glossary, for-agents, and one page per admin screen under `screens/` (dashboard, leads, cases, clients, partners, ambassadors, channels, content, payments, retainers, metrics, settings, project, help).
 - Help centre in the panel: `/admin/help` (search with `?q=`, grouped cards with audience badges) and `/admin/help/[...slug]` (left nav, collapsible on mobile, table of contents, prev/next, "Edit this file" line). Loader `src/lib/help.ts` reads `docs/help/**/*.md` at request time; pipe tables render through a small remark plugin (`src/components/admin/help/remark-tables.ts`).
 - `HelpButton` (`src/components/admin/help-button.tsx`): question-mark icon that opens a right-hand sheet with one section of `docs/help/screens/<topic>.md`, its "How it connects to other screens" list and a link to the full page; says "not written yet" when the file or heading is missing. `PageHeader` takes `helpTopic` / `helpSection`. Wired into every admin screen header and next to Advance stage, Mark memo delivered, Record payment, Set stage, Close out, the stage stepper, Convert to case, Record payout, Log post, Mark posted, each metrics gate card and Acting as.
+- Client status page `/c/[token]` (public, noindex): stage stepper, what happens next, memo, Pay now, Drive folder, last five non-`[internal]` notes, WhatsApp, disclaimer. Lookup in `src/lib/queries/public-case.ts`; stepper in `src/components/marketing/case-status/`.
+- "Client status link" row with Copy link on the admin case page.
+- Stripe webhook `POST /api/stripe/webhook`: verifies the signature, records `checkout.session.completed` as a paid payment on the case named in `client_reference_id` or `metadata.caseNumber`, marks the case paid, writes a note; idempotent on the session id; 503 when unconfigured. `src/lib/payments/links.ts` adds `client_reference_id` to case payment links.
+- Transactional email (`src/lib/email/`, Resend): intake confirmation after the `/start` form and memo-delivered email from Mark memo delivered. Sent after the response; skipped when unconfigured.
+- `GET /api/health` returning `{ ok, db }`.
 ### Changed
 - Family Office tier now lists "Everything in Plus" in its inclusions.
 - `src/middleware.ts` is `src/proxy.ts` (Next 16 rename); ARCHITECTURE.md updated.

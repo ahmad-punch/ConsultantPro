@@ -8,6 +8,7 @@ import { clients } from "@/lib/db/schema";
 import { clientSchema, clientUpdateSchema } from "@/lib/validation/clients";
 import type { FormState } from "@/lib/validation/fields";
 
+import { setArchived } from "./archive-helper";
 import { done, parseForm, revalidateAdmin, unexpected } from "./helpers";
 
 export async function createClientAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -35,4 +36,14 @@ export async function updateClientAction(_prev: FormState, formData: FormData): 
   } catch (error) {
     return unexpected(error, "save the client");
   }
+}
+
+export async function archiveClientAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  return setArchived("clients", formData, true, "client");
+}
+
+export async function unarchiveClientAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  return setArchived("clients", formData, false, "client");
 }

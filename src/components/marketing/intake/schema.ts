@@ -5,6 +5,8 @@
  */
 import { z } from "zod";
 
+import { cleanDetails } from "./details-questions";
+
 import { CASE_CATEGORIES, type CaseCategory, type LeadUrgency } from "@/lib/db/enums";
 import {
   caseCategorySchema,
@@ -64,11 +66,13 @@ export const intakeSchema = z.object({
   consent: z.boolean().refine((v) => v === true, {
     message: "Please confirm you have read the disclaimer.",
   }),
+  /** Category-specific answers, keyed by question key. Cleaned in the transform below. */
+  details: z.record(z.string(), z.string().optional()).optional(),
   /** Honeypot. Real people never see or fill this. */
   website: z.string().max(200).optional(),
   /** Where the visitor came from (?src=). Defaults to "website". */
   source: z.string().max(60).optional(),
-});
+}).transform((v) => ({ ...v, details: cleanDetails(v.category, v.details) }));
 
 export type IntakeInput = z.input<typeof intakeSchema>;
 export type IntakeValues = z.output<typeof intakeSchema>;

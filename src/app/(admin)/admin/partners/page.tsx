@@ -1,6 +1,7 @@
 import { PencilIcon, StarIcon } from "lucide-react";
 import { Suspense } from "react";
 
+import { ArchiveButton, ArchivedBadge, ShowArchivedToggle } from "@/components/admin/archive-controls";
 import { ActiveBadge, ToneBadge } from "@/components/admin/badges";
 import { EmptyState } from "@/components/admin/empty-state";
 import { FilterBar } from "@/components/admin/filter-bar";
@@ -10,6 +11,7 @@ import { PartnerForm } from "@/components/admin/forms/partner-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { archivePartnerAction, unarchivePartnerAction } from "@/lib/actions/partners";
 import { requireAdmin } from "@/lib/auth";
 import { PARTNER_TYPES, PARTNER_TYPE_LABELS } from "@/lib/db/enums";
 import { listPartners, readPartnerFilters } from "@/lib/queries/partners";
@@ -40,11 +42,15 @@ async function Partners({ searchParams }: { searchParams: PageProps<"/admin/part
   await requireAdmin();
   const f = readPartnerFilters(await searchParams);
   const rows = await listPartners(f);
+  const values = { q: f.q, type: f.type, active: f.active, archived: f.archived ? "1" : undefined };
   return (
     <>
+      <div className="mb-3">
+        <ShowArchivedToggle basePath="/admin/partners" params={values} on={f.archived} />
+      </div>
       <FilterBar
         basePath="/admin/partners"
-        values={f}
+        values={values}
         searchPlaceholder="Name or city"
         filters={[
           { name: "type", label: "Types", options: enumOptions(PARTNER_TYPES, PARTNER_TYPE_LABELS) },
@@ -75,6 +81,7 @@ async function Partners({ searchParams }: { searchParams: PageProps<"/admin/part
                 <TableRow key={p.id} className={p.active ? undefined : "opacity-60"}>
                   <TableCell>
                     <span className="font-medium">{p.name}</span>
+                    <ArchivedBadge archivedAt={p.archivedAt} />
                     <span className="block text-xs text-muted-foreground">
                       {p.city ?? "-"}
                       {p.ownLetterhead ? " · own letterhead" : ""}
@@ -113,6 +120,15 @@ async function Partners({ searchParams }: { searchParams: PageProps<"/admin/part
                     <FormDialog triggerLabel={<span className="sr-only">Edit {p.name}</span>} triggerIcon={<PencilIcon />} triggerVariant="ghost" triggerSize="icon-sm" title={`Edit ${p.name}`} wide>
                       <PartnerForm partner={p} />
                     </FormDialog>
+                    <ArchiveButton
+                      id={p.id}
+                      archivedAt={p.archivedAt}
+                      archive={archivePartnerAction}
+                      unarchive={unarchivePartnerAction}
+                      noun="partner"
+                      size="icon-sm"
+                      iconOnly
+                    />
                   </TableCell>
                 </TableRow>
               ))}

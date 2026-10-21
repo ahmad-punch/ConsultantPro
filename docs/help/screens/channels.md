@@ -52,6 +52,22 @@ The view toggle above the table. Shows every channel that matches the filters.
 
 The other view. Shows only the channels whose next post date has passed.
 
+### Import CSV
+
+Next to New channel. Paste CSV text or choose a `.csv` file, then press Preview. The first row must be the header, in the format of `marketing/channels-template.csv`: `name,platform,country,member_count,admin_contact,status,ambassador,notes`. Only `name` and `platform` are required; an empty status becomes Identified, and `ambassador` can be an ambassador's name or referral code. The preview lists every row with OK, its errors, or "Duplicate, skipped" (same name and platform as an existing channel or an earlier row). Press Import to add only the OK rows.
+
+### Archive
+
+Hides the channel from the lists without deleting it. Nothing else changes: links, payments and history stay as they were. Use it for test rows, duplicates and records you no longer work on. You are asked to confirm first.
+
+### Unarchive
+
+Shown instead of Archive on an archived channel. Puts it back in the normal lists.
+
+### Show archived
+
+A toggle next to the view switch. Turns on `?archived=1` so archived records are listed too, each with a grey "Archived" badge. Press it again ("Hide archived") to go back.
+
 ## How it connects to other screens
 
 - **Content.** The Content screen holds the posts themselves. Channels holds the places. They are separate: pressing Log post does not mark any content item as posted, and the reverse is also true.

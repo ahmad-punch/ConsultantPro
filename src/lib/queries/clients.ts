@@ -1,13 +1,13 @@
 import "server-only";
 
-import { asc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, isNull, or, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { ambassadors, cases, clients, retainers } from "@/lib/db/schema";
 
 import { likePattern } from "./params";
 
-export async function listClients(q?: string) {
+export async function listClients(q?: string, includeArchived = false) {
   const p = q ? likePattern(q) : null;
   return db
     .select({
@@ -18,6 +18,7 @@ export async function listClients(q?: string) {
       country: clients.country,
       city: clients.city,
       createdAt: clients.createdAt,
+      archivedAt: clients.archivedAt,
       ambassadorName: ambassadors.name,
       caseCount: sql<number>`(select count(*)::int from ${cases} where ${cases.clientId} = ${clients.id})`,
       activeRetainers: sql<number>`(select count(*)::int from ${retainers} where ${retainers.clientId} = ${clients.id} and ${retainers.status} = 'active')`,
@@ -26,7 +27,9 @@ export async function listClients(q?: string) {
     .from(clients)
     .leftJoin(ambassadors, eq(clients.ambassadorId, ambassadors.id))
     .where(
-      p
+      and(
+        includeArchived ? undefined : isNull(clients.archivedAt),
+        p
         ? or(
             ilike(clients.name, p),
             ilike(clients.whatsapp, p),
@@ -35,6 +38,7 @@ export async function listClients(q?: string) {
             ilike(clients.city, p),
           )
         : undefined,
+      ),
     )
     .orderBy(asc(clients.name));
 }

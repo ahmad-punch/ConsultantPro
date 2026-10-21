@@ -1,6 +1,7 @@
 "use server";
 
 import { eq } from "drizzle-orm";
+import { after } from "next/server";
 
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -22,7 +23,11 @@ import {
   stagePath,
 } from "@/lib/validation/cases";
 import type { FormState } from "@/lib/validation/fields";
+import { sendEmail } from "@/lib/email";
+import { memoDeliveredEmail } from "@/lib/email/templates";
+import { caseStatusUrl } from "@/lib/payments/links";
 
+import { setArchived } from "./archive-helper";
 import {
   done,
   failed,
@@ -193,6 +198,24 @@ export async function markMemoDeliveredAction(_prev: FormState, formData: FormDa
       await db.update(cases).set({ memoDeliveredAt: new Date() }).where(eq(cases.id, row.id));
       await addNote(row.id, "Memo delivered to the client.");
     }
+    const client = await db.query.clients.findFirst({
+      where: (c, { eq }) => eq(c.id, row.clientId),
+      columns: { name: true, email: true },
+    });
+    if (client?.email) {
+      const to = client.email;
+      after(async () => {
+        await sendEmail({
+          to,
+          ...memoDeliveredEmail({
+            name: client.name,
+            caseNumber: row.caseNumber,
+            memoUrl: row.memoDocUrl,
+            statusUrl: caseStatusUrl(row.publicToken),
+          }),
+        });
+      });
+    }
     revalidateAdmin();
     return done("Memo marked delivered.", row.id);
   } catch (error) {
@@ -242,4 +265,14 @@ export async function addCaseNoteAction(_prev: FormState, formData: FormData): P
   } catch (error) {
     return unexpected(error, "add the note");
   }
+}
+
+export async function archiveCaseAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  return setArchived("cases", formData, true, "case", (id) => addNote(id, "Case archived."));
+}
+
+export async function unarchiveCaseAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  return setArchived("cases", formData, false, "case", (id) => addNote(id, "Case restored from the archive."));
 }

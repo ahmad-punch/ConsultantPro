@@ -8,6 +8,7 @@ import { partners } from "@/lib/db/schema";
 import type { FormState } from "@/lib/validation/fields";
 import { partnerSchema, partnerUpdateSchema } from "@/lib/validation/partners";
 
+import { setArchived } from "./archive-helper";
 import { done, parseForm, revalidateAdmin, unexpected } from "./helpers";
 
 export async function createPartnerAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -35,4 +36,14 @@ export async function updatePartnerAction(_prev: FormState, formData: FormData):
   } catch (error) {
     return unexpected(error, "save the partner");
   }
+}
+
+export async function archivePartnerAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  return setArchived("partners", formData, true, "partner");
+}
+
+export async function unarchivePartnerAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  return setArchived("partners", formData, false, "partner");
 }

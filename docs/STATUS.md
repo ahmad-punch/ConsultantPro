@@ -13,13 +13,18 @@ Updated: 2026-10-21. One line per item. Move items between sections, do not dele
 - Help content: all files in `docs/help/` written against the current admin code (screens, workflows, glossary, public site, agents guide). A few `TODO: confirm` markers remain for business rules (ambassador commission basis, refund netting, part-paid managed cases).
 - Help system: `/admin/help` and `/admin/help/[...slug]` render `docs/help/`; contextual `HelpButton`s on every admin screen header and the key actions. Lint, typecheck and build pass; checked at 375px.
 
+- Client touchpoints: status page `/c/[token]`, admin copy-link row, Stripe webhook, Resend emails (intake confirmation, memo delivered), `/api/health`. Lint and own-file typecheck pass.
+- Operations tools: archive/unarchive with Show archived toggles, CSV import for channels and leads, intake category questions into `leads.details`, metrics snapshots with history. Typecheck and own-file lint pass; checked in the browser (archive/unarchive a channel, import 3 channels, property intake details on a lead, save snapshot).
+
 ## In progress
 - Nothing in progress.
 
 ## Next
 - Deploy to Vercel (free tier), set env vars, connect Neon Postgres. Steps in `docs/DEPLOY.md`.
 - Native Urdu review of guides and posts; lawyer fact-check of guides and legal pages.
-- Stripe payment links through a UK or US entity.
+- Stripe payment links through a UK or US entity. Then set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` and add the webhook endpoint (`docs/DEPLOY.md`).
+- Email: verify a sending domain on Resend, set `RESEND_API_KEY` and `EMAIL_FROM`.
+- Client status page: add a real "internal note" flag on `case_notes` instead of the `[internal]` prefix.
 - First 5 Pathway Memo templates as Google Docs.
 - Recruit 2 partner advocates and 2 errand runners; load them into the panel.
 - Run the 90-day test (plan Section 10).

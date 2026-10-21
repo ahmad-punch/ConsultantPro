@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { ActionButton } from "@/components/admin/action-form";
+import { ArchiveButton, ArchivedBadge } from "@/components/admin/archive-controls";
 import { LeadStatusBadge, StageBadge, UrgencyBadge } from "@/components/admin/badges";
 import { formatDateTime } from "@/components/admin/format";
 import { FormDialog } from "@/components/admin/form-dialog";
@@ -14,8 +15,9 @@ import { PageHeader } from "@/components/admin/page-header";
 import { DetailSkeleton } from "@/components/admin/skeletons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { setLeadStatusAction } from "@/lib/actions/leads";
+import { archiveLeadAction, setLeadStatusAction, unarchiveLeadAction } from "@/lib/actions/leads";
 import { requireAdmin } from "@/lib/auth";
+import { labelledDetails } from "@/components/marketing/intake/details-questions";
 import { CASE_CATEGORY_LABELS } from "@/lib/db/enums";
 import { getLead } from "@/lib/queries/leads";
 import { getTeamOptions } from "@/lib/queries/options";
@@ -38,6 +40,7 @@ async function LeadDetail({ params }: { params: PageProps<"/admin/leads/[id]">["
   const [lead, team] = await Promise.all([getLead(id), getTeamOptions()]);
   if (!lead) notFound();
   const waDigits = lead.whatsapp.replace(/\D/g, "");
+  const detailRows = labelledDetails(lead.category, lead.details);
   const open = lead.status === "new" || lead.status === "contacted";
 
   return (
@@ -54,6 +57,7 @@ async function LeadDetail({ params }: { params: PageProps<"/admin/leads/[id]">["
             {lead.name}
             <LeadStatusBadge status={lead.status} />
             <UrgencyBadge urgency={lead.urgency} />
+            <ArchivedBadge archivedAt={lead.archivedAt} />
           </span>
         }
         description={`${CASE_CATEGORY_LABELS[lead.category]} · ${lead.country} · received ${formatDateTime(lead.createdAt)}`}
@@ -81,6 +85,13 @@ async function LeadDetail({ params }: { params: PageProps<"/admin/leads/[id]">["
             <FormDialog triggerLabel="Edit" triggerVariant="outline" triggerSize="sm" title="Edit lead" wide>
               <LeadForm lead={lead} />
             </FormDialog>
+            <ArchiveButton
+              id={lead.id}
+              archivedAt={lead.archivedAt}
+              archive={archiveLeadAction}
+              unarchive={unarchiveLeadAction}
+              noun="lead"
+            />
           </>
         }
       />
@@ -131,6 +142,24 @@ async function LeadDetail({ params }: { params: PageProps<"/admin/leads/[id]">["
             </dl>
           </CardContent>
         </Card>
+
+        {detailRows.length ? (
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Details</CardTitle>
+              <CardDescription>Answers to the {CASE_CATEGORY_LABELS[lead.category]} questions on the form.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <dl className="grid gap-3 text-sm sm:grid-cols-2">
+                {detailRows.map((row) => (
+                  <Info key={row.key} label={row.label}>
+                    {row.value}
+                  </Info>
+                ))}
+              </dl>
+            </CardContent>
+          </Card>
+        ) : null}
 
         <Card>
           <CardHeader>

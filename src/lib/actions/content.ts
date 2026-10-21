@@ -14,6 +14,7 @@ import {
 } from "@/lib/validation/content";
 import type { FormState } from "@/lib/validation/fields";
 
+import { setArchived } from "./archive-helper";
 import { done, failed, parseForm, revalidateAdmin, unexpected } from "./helpers";
 
 export async function createContentAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -83,4 +84,14 @@ export async function markContentPostedAction(_prev: FormState, formData: FormDa
   } catch (error) {
     return unexpected(error, "mark the item posted");
   }
+}
+
+export async function archiveContentAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  return setArchived("contentItems", formData, true, "content item");
+}
+
+export async function unarchiveContentAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  return setArchived("contentItems", formData, false, "content item");
 }

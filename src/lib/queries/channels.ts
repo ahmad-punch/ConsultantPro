@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, ilike, or, type SQL } from "drizzle-orm";
+import { and, asc, eq, ilike, isNull, or, type SQL } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { CHANNEL_PLATFORMS, CHANNEL_STATUSES } from "@/lib/db/enums";
@@ -11,6 +11,7 @@ import { DAY_MS } from "./time";
 
 export function readChannelFilters(sp: SearchParams) {
   return {
+    archived: param(sp, "archived") === "1",
     q: param(sp, "q"),
     status: enumParam(sp, "status", CHANNEL_STATUSES),
     platform: enumParam(sp, "platform", CHANNEL_PLATFORMS),
@@ -34,6 +35,7 @@ export async function listChannels(f: ReturnType<typeof readChannelFilters>, now
     const p = likePattern(f.q);
     where.push(or(ilike(channels.name, p), ilike(channels.country, p), ilike(channels.adminContact, p))!);
   }
+  if (!f.archived) where.push(isNull(channels.archivedAt));
   if (f.status) where.push(eq(channels.status, f.status));
   if (f.platform) where.push(eq(channels.platform, f.platform));
   const rows = await db

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { ArchivedBadge, ShowArchivedToggle } from "@/components/admin/archive-controls";
 import { EmptyState } from "@/components/admin/empty-state";
 import { FilterBar } from "@/components/admin/filter-bar";
 import { formatUsd } from "@/components/admin/format";
@@ -35,7 +36,8 @@ async function Clients({ searchParams }: { searchParams: PageProps<"/admin/clien
   await requireAdmin();
   const sp = await searchParams;
   const q = param(sp, "q");
-  const [rows, ambassadors] = await Promise.all([listClients(q), getAmbassadorOptions()]);
+  const archived = param(sp, "archived") === "1";
+  const [rows, ambassadors] = await Promise.all([listClients(q, archived), getAmbassadorOptions()]);
   return (
     <>
       <PageHeader
@@ -48,7 +50,15 @@ async function Clients({ searchParams }: { searchParams: PageProps<"/admin/clien
           </FormDialog>
         }
       />
-      <FilterBar basePath="/admin/clients" values={{ q }} filters={[]} searchPlaceholder="Name, phone, email, place" />
+      <div className="mb-3">
+        <ShowArchivedToggle basePath="/admin/clients" params={{ q }} on={archived} />
+      </div>
+      <FilterBar
+        basePath="/admin/clients"
+        values={{ q, archived: archived ? "1" : undefined }}
+        filters={[]}
+        searchPlaceholder="Name, phone, email, place"
+      />
       {rows.length === 0 ? (
         <EmptyState title={q ? "No clients match" : "No clients yet"} description="Clients are created when you convert a lead or open a case." />
       ) : (
@@ -72,6 +82,7 @@ async function Clients({ searchParams }: { searchParams: PageProps<"/admin/clien
                     <Link href={`/admin/clients/${c.id}`} className="font-medium hover:text-primary hover:underline">
                       {c.name}
                     </Link>
+                    <ArchivedBadge archivedAt={c.archivedAt} />
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <span className="block">{c.whatsapp ?? "-"}</span>

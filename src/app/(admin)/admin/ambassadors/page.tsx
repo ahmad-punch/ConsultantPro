@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { ArchivedBadge, ShowArchivedToggle } from "@/components/admin/archive-controls";
 import { ActiveBadge } from "@/components/admin/badges";
 import { EmptyState } from "@/components/admin/empty-state";
 import { formatUsd } from "@/components/admin/format";
@@ -11,10 +12,11 @@ import { TableSkeleton } from "@/components/admin/skeletons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requireAdmin } from "@/lib/auth";
 import { listAmbassadors } from "@/lib/queries/ambassadors";
+import { param } from "@/lib/queries/params";
 
 export const metadata = { title: "Ambassadors" };
 
-export default function AmbassadorsPage() {
+export default function AmbassadorsPage({ searchParams }: PageProps<"/admin/ambassadors">) {
   return (
     <>
       <PageHeader
@@ -28,19 +30,32 @@ export default function AmbassadorsPage() {
         }
       />
       <Suspense fallback={<TableSkeleton />}>
-        <Ambassadors />
+        <Ambassadors searchParams={searchParams} />
       </Suspense>
     </>
   );
 }
 
-async function Ambassadors() {
+async function Ambassadors({ searchParams }: { searchParams: PageProps<"/admin/ambassadors">["searchParams"] }) {
   await requireAdmin();
-  const rows = await listAmbassadors();
+  const archived = param(await searchParams, "archived") === "1";
+  const rows = await listAmbassadors(archived);
+  const toggle = (
+    <div className="mb-3">
+      <ShowArchivedToggle basePath="/admin/ambassadors" params={{}} on={archived} />
+    </div>
+  );
   if (rows.length === 0) {
-    return <EmptyState title="No ambassadors yet" description="Plan: 3-5 community ambassadors from week 5." />;
+    return (
+      <>
+        {toggle}
+        <EmptyState title="No ambassadors yet" description="Plan: 3-5 community ambassadors from week 5." />
+      </>
+    );
   }
   return (
+    <>
+    {toggle}
     <div className="overflow-hidden rounded-xl border bg-card">
       <Table>
         <TableHeader>
@@ -62,6 +77,7 @@ async function Ambassadors() {
                 <Link href={`/admin/ambassadors/${a.id}`} className="font-medium hover:text-primary hover:underline">
                   {a.name}
                 </Link>
+                <ArchivedBadge archivedAt={a.archivedAt} />
                 <span className="block text-xs text-muted-foreground">{a.commissionPct}% commission</span>
               </TableCell>
               <TableCell className="font-mono text-xs">{a.referralCode}</TableCell>
@@ -78,5 +94,6 @@ async function Ambassadors() {
         </TableBody>
       </Table>
     </div>
+    </>
   );
 }

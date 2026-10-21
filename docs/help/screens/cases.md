@@ -41,9 +41,12 @@ Saves the New case form. It creates the client if needed, creates the case at In
 
 On the case page the button is labelled "Move to" plus the next stage name, for example "Move to Triage". It appears only when the case has a next step on its path. It moves the case one step forward and writes a note ("Stage changed: Intake -> Triage"). Moving into Memo delivered also stamps the memo delivered date if it was empty. Moving into Closed stamps the closed date, but it does not ask for feedback. Use Close out for that.
 
-### Mark memo delivered
+### Client status link
 
-Appears on any case except errands, until a memo has been delivered. It records the memo delivered date as now. If the case is still before Memo delivered, it also moves the stage there. It writes a note. The "Median days to memo" gate uses this date, so press it on the day the client gets the memo.
+A row above the stage stepper shows the case's private status page address (`/c/<token>`) with a **Copy link** button. Send it to the client on WhatsApp so they can check progress without asking. The page shows the stage, the next action, the memo and payment buttons, the Drive folder and the last five notes. Any note that starts with `[internal]` is hidden from the client, so start internal notes with that word. Archived cases show "not found".
+
+
+Appears on any case except errands, until a memo has been delivered. It records the memo delivered date as now. If the case is still before Memo delivered, it also moves the stage there. It writes a note. The "Median days to memo" gate uses this date, so press it on the day the client gets the memo. If the client has an email address and email is configured, they get a "Your written plan is ready" email with the memo link and their status link.
 
 ### Record payment
 
@@ -64,6 +67,18 @@ Saves the Case details form: summary, next action and date, case manager, partne
 ### Add note
 
 Type in "Add a note" and press Add note. The note is signed with the name chosen under Settings, "Acting as". Add one every time you speak to the client or a partner.
+
+### Archive
+
+Hides the record from the lists without deleting it. Nothing else changes: links, payments and history stay as they were. Use it for test cases and duplicates. Archived cases are left out of the metrics. A case note records each archive and unarchive. You are asked to confirm first.
+
+### Unarchive
+
+Shown instead of Archive on an archived record. Puts it back in the normal lists.
+
+### Show archived
+
+A toggle above the list. Turns on `?archived=1` so archived records are listed too, each with a grey "Archived" badge. Press it again ("Hide archived") to go back.
 
 ## How it connects to other screens
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ActionButton } from "@/components/admin/action-form";
+import { ArchiveButton, ArchivedBadge, ShowArchivedToggle } from "@/components/admin/archive-controls";
 import { ChannelStatusBadge, ToneBadge } from "@/components/admin/badges";
 import { EmptyState } from "@/components/admin/empty-state";
 import { FilterBar } from "@/components/admin/filter-bar";
@@ -13,7 +14,8 @@ import { ChannelForm } from "@/components/admin/forms/channel-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { logChannelPostAction } from "@/lib/actions/channels";
+import { archiveChannelAction, logChannelPostAction, unarchiveChannelAction } from "@/lib/actions/channels";
+import { ImportChannelsDialog } from "@/components/admin/import/import-dialogs";
 import { requireAdmin } from "@/lib/auth";
 import {
   CHANNEL_PLATFORMS,
@@ -48,7 +50,13 @@ async function Channels({ searchParams }: { searchParams: PageProps<"/admin/chan
   const now = new Date();
   const [rows, ambassadors] = await Promise.all([listChannels(f, now), getAmbassadorOptions(true)]);
   const base = "/admin/channels";
-  const params = { q: f.q, status: f.status, platform: f.platform, view: f.view === "due" ? "due" : undefined };
+  const params = {
+    q: f.q,
+    status: f.status,
+    platform: f.platform,
+    view: f.view === "due" ? "due" : undefined,
+    archived: f.archived ? "1" : undefined,
+  };
 
   return (
     <>
@@ -57,12 +65,16 @@ async function Channels({ searchParams }: { searchParams: PageProps<"/admin/chan
         title="Channels"
         description="WhatsApp groups, Facebook groups, associations and community centres we post in. Set a cadence to get reminders."
         actions={
-          <FormDialog triggerLabel="New channel" title="New channel" wide>
-            <ChannelForm ambassadors={ambassadors} />
-          </FormDialog>
+          <>
+            <ImportChannelsDialog />
+            <FormDialog triggerLabel="New channel" title="New channel" wide>
+              <ChannelForm ambassadors={ambassadors} />
+            </FormDialog>
+          </>
         }
       />
-      <div className="mb-3 inline-flex rounded-lg border bg-card p-0.5" role="group" aria-label="View">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="inline-flex rounded-lg border bg-card p-0.5" role="group" aria-label="View">
         {[
           { label: "All channels", view: undefined },
           { label: "Due to post", view: "due" },
@@ -80,6 +92,8 @@ async function Channels({ searchParams }: { searchParams: PageProps<"/admin/chan
             {v.label}
           </Link>
         ))}
+      </div>
+      <ShowArchivedToggle basePath={base} params={params} on={f.archived} />
       </div>
       <FilterBar
         basePath={base}
@@ -120,7 +134,10 @@ async function Channels({ searchParams }: { searchParams: PageProps<"/admin/chan
               {rows.map(({ channel: c, ambassadorName, nextDue, isDue }) => (
                 <TableRow key={c.id}>
                   <TableCell className="max-w-72">
-                    <span className="block truncate font-medium">{c.name}</span>
+                    <span className={cn("block truncate font-medium", c.archivedAt && "text-muted-foreground")}>
+                      {c.name}
+                      <ArchivedBadge archivedAt={c.archivedAt} />
+                    </span>
                     <span className="block truncate text-xs text-muted-foreground">
                       {CHANNEL_PLATFORM_LABELS[c.platform]}
                       {c.country ? ` · ${c.country}` : ""}
@@ -163,6 +180,15 @@ async function Channels({ searchParams }: { searchParams: PageProps<"/admin/chan
                       >
                         <ChannelForm channel={c} ambassadors={ambassadors} />
                       </FormDialog>
+                      <ArchiveButton
+                        id={c.id}
+                        archivedAt={c.archivedAt}
+                        archive={archiveChannelAction}
+                        unarchive={unarchiveChannelAction}
+                        noun="channel"
+                        size="icon-sm"
+                        iconOnly
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

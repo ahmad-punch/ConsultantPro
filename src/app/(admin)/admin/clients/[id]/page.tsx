@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { ActionButton } from "@/components/admin/action-form";
+import { ArchiveButton, ArchivedBadge } from "@/components/admin/archive-controls";
 import { PaymentBadge, RetainerStatusBadge, StageBadge } from "@/components/admin/badges";
 import { EmptyState } from "@/components/admin/empty-state";
 import { formatDate, formatUsd } from "@/components/admin/format";
@@ -14,6 +15,7 @@ import { PageHeader } from "@/components/admin/page-header";
 import { DetailSkeleton } from "@/components/admin/skeletons";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { archiveClientAction, unarchiveClientAction } from "@/lib/actions/clients";
 import { cancelRetainerAction } from "@/lib/actions/retainers";
 import { requireAdmin } from "@/lib/auth";
 import { CASE_CATEGORY_LABELS, PRODUCT_LABELS, RETAINER_TIER_LABELS } from "@/lib/db/enums";
@@ -48,12 +50,26 @@ async function ClientView({ params }: { params: PageProps<"/admin/clients/[id]">
             <ArrowLeftIcon className="size-3" /> Clients
           </Link>
         }
-        title={client.name}
+        title={
+          <span className="flex flex-wrap items-center gap-2">
+            {client.name}
+            <ArchivedBadge archivedAt={client.archivedAt} />
+          </span>
+        }
         description={`${[client.city, client.country].filter(Boolean).join(", ") || "Location not set"} · client since ${formatDate(client.createdAt)} · ${formatUsd(paid)} paid`}
         actions={
-          <Button asChild size="sm">
-            <Link href={`/admin/cases/new?clientId=${client.id}`}>New case for this client</Link>
-          </Button>
+          <>
+            <Button asChild size="sm">
+              <Link href={`/admin/cases/new?clientId=${client.id}`}>New case for this client</Link>
+            </Button>
+            <ArchiveButton
+              id={client.id}
+              archivedAt={client.archivedAt}
+              archive={archiveClientAction}
+              unarchive={unarchiveClientAction}
+              noun="client"
+            />
+          </>
         }
       />
       <div className="grid gap-6 lg:grid-cols-3">

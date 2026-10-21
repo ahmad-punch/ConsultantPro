@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, isNull, or, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { CASE_CATEGORIES, LEAD_STATUSES } from "@/lib/db/enums";
@@ -19,6 +19,7 @@ export type LeadSort = keyof typeof LEAD_SORTS;
 export function readLeadFilters(sp: SearchParams) {
   const sortKey = param(sp, "sort");
   return {
+    archived: param(sp, "archived") === "1",
     q: param(sp, "q"),
     status: enumParam(sp, "status", LEAD_STATUSES),
     category: enumParam(sp, "category", CASE_CATEGORIES),
@@ -42,6 +43,7 @@ export async function listLeads(f: LeadFilters) {
       )!,
     );
   }
+  if (!f.archived) where.push(isNull(leads.archivedAt));
   if (f.status) where.push(eq(leads.status, f.status));
   if (f.category) where.push(eq(leads.category, f.category));
   if (f.source) where.push(eq(leads.source, f.source));
@@ -59,6 +61,7 @@ export async function listLeads(f: LeadFilters) {
       status: leads.status,
       referralCode: leads.referralCode,
       createdAt: leads.createdAt,
+      archivedAt: leads.archivedAt,
       caseId: cases.id,
       caseNumber: cases.caseNumber,
     })

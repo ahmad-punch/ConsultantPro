@@ -64,9 +64,11 @@ The address can carry hints: `?category=` pre-selects the category, `?ref=CODE` 
 
 The form also has a hidden field that only software fills in (a "honeypot"). If it is filled, the submission is quietly dropped. After 5 submissions from one internet address in 10 minutes, further ones are refused for a while. These are spam guards.
 
+**Quick questions by category.** Once the visitor picks a category, a few extra questions appear (all optional). For example, Property asks for the district, type of record, who is occupying it and whether they hold a power of attorney; Inheritance asks for the deceased's name, date of death, number of legal heirs and whether there is a dispute. Police / FIR, Tax (FBR), NADRA / NICOP, Attestation, Company (SECP), Court records and Errand each have their own short set. "Other" has none. Answers are saved on the lead, shown in a **Details** section on the lead's page, and copied into the case summary when you convert the lead.
+
 **Where the data goes.** A successful submission creates a row in the leads table. In the panel it appears on the **Leads** screen with status **New**, and raises the "New leads" count on the Dashboard. The lead gets:
 
-- the details typed in,
+- the details typed in, including the category questions,
 - the referral code (letters, digits, dashes and underscores only, in capitals),
 - a source: the `?src=` value, or "website" if there is none.
 
@@ -80,12 +82,21 @@ Why: they set out the rules between us and a client: what we provide, prices, re
 
 Keep every disclaimer that exists. Do not soften them.
 
+### Client status page (`/c/<token>`)
+
+Why: clients can check where their case stands without messaging us. Each case has a private, unguessable address; the case page in the control panel has a **Copy link** button for it.
+
+What it shows: the case number and service, the stages as a stepper, "What happens next" (the case's next action, or a standard sentence for the stage), a **Read your plan** button once the memo link is set, **Pay now** while unpaid and a payment link is set, the Drive folder, the last five notes, a WhatsApp button and the disclaimer. Notes starting with `[internal]` are never shown. Search engines are told not to index it. Archived cases show the not-found page.
+
+When a client pays through the **Pay now** button, Stripe tells the site, which records the payment, marks the case paid and writes a note (see `docs/DEPLOY.md`, Stripe webhook).
+
 ## Behind the scenes
 
 - **Header and footer.** The header lists How it works, Pricing, Guides, FAQ, About and a "Start a case" button. The footer links to the legal pages and shows the disclaimer.
 - **Search engines.** A sitemap, a robots file, a shared preview image and structured data are produced automatically.
 - **Placeholders.** Anything starting with "TODO" is a placeholder, shown visibly so no one mistakes it for a final value.
 - **Not found page.** A friendly page for broken addresses.
+- **Emails.** When someone sends the intake form with an email address, they get a short confirmation with what happens next and the WhatsApp link. Emails are only sent once the email service is configured.
 - **Language.** English, with an Urdu summary on each guide and Urdu available on request for memos.
 
 ## What the site never does

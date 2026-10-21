@@ -68,6 +68,14 @@ Sets the range to the last 30 days.
 
 Sets the range from the first of this month to today.
 
+### Save snapshot
+
+Next to the date range. Stores the six gate values, their pass or fail, and the range on screen, with an optional note (for example "Day 60 review"). Use it at each review so you can see how the gate moved.
+
+### History
+
+The table under the gate cards. One row per saved snapshot, newest first: date, note, each gate value (green when it passed, red when it failed) and how many of the six passed. Archived cases are not counted in any metric.
+
 ## How it connects to other screens
 
 It reads from almost everything: Leads (source, converted), Cases (payment status, referral links, memo date, close-out answers), Payments (amounts and dates), Retainers (start dates) and Channels (coverage). It has no forms. To change a number you change the data on the screen it came from.

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { ArchivedBadge, ShowArchivedToggle } from "@/components/admin/archive-controls";
 import { LeadStatusBadge, UrgencyBadge } from "@/components/admin/badges";
+import { ImportLeadsDialog } from "@/components/admin/import/import-dialogs";
 import { EmptyState } from "@/components/admin/empty-state";
 import { FilterBar } from "@/components/admin/filter-bar";
 import { ageLabel, enumOptions, formatDate } from "@/components/admin/format";
@@ -36,9 +38,12 @@ export default function LeadsPage({ searchParams }: PageProps<"/admin/leads">) {
         title="Leads"
         description="Everyone who asked for help. Contact new leads within a working day, then convert or close them."
         actions={
-          <Button asChild>
-            <Link href="/admin/leads/new">New lead</Link>
-          </Button>
+          <>
+            <ImportLeadsDialog />
+            <Button asChild>
+              <Link href="/admin/leads/new">New lead</Link>
+            </Button>
+          </>
         }
       />
       <Suspense fallback={<TableSkeleton />}>
@@ -54,10 +59,21 @@ async function LeadsTable({ searchParams }: { searchParams: PageProps<"/admin/le
   const f = readLeadFilters(sp);
   const [rows, sources] = await Promise.all([listLeads(f), listLeadSources()]);
   const now = new Date();
-  const params = { q: f.q, status: f.status, category: f.category, source: f.source, sort: f.sort, dir: f.dir };
+  const params = {
+    q: f.q,
+    status: f.status,
+    category: f.category,
+    source: f.source,
+    sort: f.sort,
+    dir: f.dir,
+    archived: f.archived ? "1" : undefined,
+  };
   const base = "/admin/leads";
   return (
     <>
+      <div className="mb-3">
+        <ShowArchivedToggle basePath={base} params={params} on={f.archived} />
+      </div>
       <FilterBar
         basePath={base}
         values={params}
@@ -107,6 +123,7 @@ async function LeadsTable({ searchParams }: { searchParams: PageProps<"/admin/le
                     <Link href={`/admin/leads/${l.id}`} className="font-medium hover:text-primary hover:underline">
                       {l.name}
                     </Link>
+                    <ArchivedBadge archivedAt={l.archivedAt} />
                     <p className="truncate text-xs text-muted-foreground">
                       {l.country} · {l.description}
                     </p>

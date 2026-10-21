@@ -2,6 +2,7 @@ import { KanbanSquareIcon, ListIcon } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { ArchivedBadge, ShowArchivedToggle } from "@/components/admin/archive-controls";
 import { DueBadge, PaymentBadge, STAGE_TONE, StageBadge, TONE_DOT } from "@/components/admin/badges";
 import { EmptyState } from "@/components/admin/empty-state";
 import { FilterBar } from "@/components/admin/filter-bar";
@@ -69,6 +70,7 @@ async function Cases({ searchParams }: { searchParams: SP }) {
     sort: f.sort === "created" && f.dir === "desc" ? undefined : f.sort,
     dir: f.sort === "created" && f.dir === "desc" ? undefined : f.dir,
     view: board ? "board" : undefined,
+    archived: f.archived ? "1" : undefined,
   };
   const base = "/admin/cases";
   const filtered = !!(f.q || f.stage || f.category || f.product || f.payment || f.manager || f.open);
@@ -84,7 +86,10 @@ async function Cases({ searchParams }: { searchParams: SP }) {
             Board
           </ViewLink>
         </div>
-        <p className="text-xs text-muted-foreground">{rows.length} cases</p>
+        <div className="flex items-center gap-3">
+          <ShowArchivedToggle basePath={base} params={params} on={f.archived} />
+          <p className="text-xs text-muted-foreground">{rows.length} cases</p>
+        </div>
       </div>
       <FilterBar
         basePath={base}
@@ -150,7 +155,10 @@ async function Cases({ searchParams }: { searchParams: SP }) {
                       </Link>
                     </TableCell>
                     <TableCell className="max-w-56">
-                      <span className="block truncate font-medium">{c.clientName}</span>
+                      <span className="block truncate font-medium">
+                        {c.clientName}
+                        <ArchivedBadge archivedAt={c.archivedAt} />
+                      </span>
                       <span className="block truncate text-xs text-muted-foreground">{CASE_CATEGORY_LABELS[c.category]}</span>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">{PRODUCT_LABELS[c.product]}</TableCell>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { ArchiveButton, ArchivedBadge } from "@/components/admin/archive-controls";
 import { ActiveBadge, ChannelStatusBadge, PaymentBadge, StageBadge } from "@/components/admin/badges";
 import { CopyButton } from "@/components/admin/copy-button";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -15,6 +16,7 @@ import { DetailSkeleton } from "@/components/admin/skeletons";
 import { StatCard } from "@/components/admin/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { archiveAmbassadorAction, unarchiveAmbassadorAction } from "@/lib/actions/ambassadors";
 import { requireAdmin } from "@/lib/auth";
 import { CHANNEL_PLATFORM_LABELS, PRODUCT_LABELS } from "@/lib/db/enums";
 import { getAmbassador } from "@/lib/queries/ambassadors";
@@ -51,6 +53,7 @@ async function AmbassadorView({ params }: { params: PageProps<"/admin/ambassador
         title={
           <span className="flex flex-wrap items-center gap-2">
             {a.name} <ActiveBadge active={a.active} />
+            <ArchivedBadge archivedAt={a.archivedAt} />
           </span>
         }
         description={`${[a.city, a.country].filter(Boolean).join(", ")} · ${a.commissionPct}% of paid case revenue${a.whatsapp ? ` · ${a.whatsapp}` : ""}`}
@@ -65,6 +68,13 @@ async function AmbassadorView({ params }: { params: PageProps<"/admin/ambassador
             <FormDialog triggerLabel="Edit" triggerVariant="outline" triggerSize="sm" title={`Edit ${a.name}`} wide>
               <AmbassadorForm ambassador={a} />
             </FormDialog>
+            <ArchiveButton
+              id={a.id}
+              archivedAt={a.archivedAt}
+              archive={archiveAmbassadorAction}
+              unarchive={unarchiveAmbassadorAction}
+              noun="ambassador"
+            />
           </>
         }
       />

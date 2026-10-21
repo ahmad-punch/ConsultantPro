@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { EmptyState } from "@/components/admin/empty-state";
+import { FormDialog } from "@/components/admin/form-dialog";
 import { formatDate, formatUsd, toDateInput } from "@/components/admin/format";
 import { HelpButton } from "@/components/admin/help-button";
 import { PageHeader } from "@/components/admin/page-header";
@@ -22,11 +23,13 @@ import {
   PRODUCTS,
   PRODUCT_LABELS,
 } from "@/lib/db/enums";
-import { getFirstCaseDate, getMetrics, type GateMetric } from "@/lib/queries/metrics";
+import { getFirstCaseDate, getMetrics, listMetricsSnapshots, type GateMetric } from "@/lib/queries/metrics";
 import { param } from "@/lib/queries/params";
 import { addDays, startOfDayUtc, startOfMonthUtc } from "@/lib/queries/time";
 import { cn } from "@/lib/utils";
 import { parseDateInput } from "@/lib/validation/fields";
+
+import { SnapshotForm } from "./snapshot-form";
 
 export const metadata = { title: "Metrics" };
 
@@ -70,7 +73,7 @@ async function Metrics({ searchParams }: { searchParams: SP }) {
   const from = readDate(param(sp, "from")) ?? firstDay;
   const toDay = readDate(param(sp, "to")) ?? today;
   const range = { from, to: addDays(toDay, 1) };
-  const m = await getMetrics(range);
+  const [m, snapshots] = await Promise.all([getMetrics(range), listMetricsSnapshots()]);
 
   const presets = [
     { label: "Since first case", from: firstDay, to: today },
@@ -116,10 +119,28 @@ async function Metrics({ searchParams }: { searchParams: SP }) {
           <h2 className="text-sm font-semibold">
             Gate: {m.passed} of {m.gate.length} passing
           </h2>
-          <p className="text-xs text-muted-foreground">
-            {formatDate(from)} to {formatDate(toDay)}
-            {first ? ` · first case ${formatDate(first)}` : " · no cases yet"}
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-xs text-muted-foreground">
+              {formatDate(from)} to {formatDate(toDay)}
+              {first ? ` · first case ${formatDate(first)}` : " · no cases yet"}
+            </p>
+            <div className="inline-flex items-center gap-0.5">
+              <FormDialog
+                triggerLabel="Save snapshot"
+                triggerVariant="outline"
+                triggerSize="sm"
+                title="Save a snapshot of the gate"
+                description="Stores the six gate values and pass flags for this range, so you can compare later."
+              >
+                <SnapshotForm
+                  from={toDateInput(from)}
+                  to={toDateInput(toDay)}
+                  label={`${formatDate(from)} to ${formatDate(toDay)}`}
+                />
+              </FormDialog>
+              <HelpButton topic="metrics" section="save-snapshot" />
+            </div>
+          </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {m.gate.map((g) => (
@@ -127,6 +148,8 @@ async function Metrics({ searchParams }: { searchParams: SP }) {
           ))}
         </div>
       </div>
+
+      <SnapshotHistory snapshots={snapshots} gate={m.gate} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -348,5 +371,85 @@ function Bar({ value, max }: { value: number; max: number }) {
     <span className="block h-2 overflow-hidden rounded-full bg-muted" aria-hidden>
       <span className="block h-full rounded-full bg-primary/70" style={{ width: `${max ? (value / max) * 100 : 0}%` }} />
     </span>
+  );
+}
+
+type Snapshot = Awaited<ReturnType<typeof listMetricsSnapshots>>[number];
+
+/** Format a stored gate value the way the card shows it. */
+function snapshotValue(key: string, v: number | boolean | null | undefined): string {
+  if (v === null || v === undefined || typeof v === "boolean") return "-";
+  if (key === "blended") return formatUsd(Math.round(v));
+  if (key === "referrals" || key === "recommend") return `${Math.round(v * 100)}%`;
+  if (key === "memo") return v.toFixed(1);
+  return String(v);
+}
+
+function SnapshotHistory({ snapshots, gate }: { snapshots: Snapshot[]; gate: GateMetric[] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>History</CardTitle>
+        <CardDescription>Saved snapshots of the gate, newest first.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {snapshots.length === 0 ? (
+          <EmptyState title="No snapshots yet" description="Use Save snapshot to record the gate at a review point." />
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Saved</TableHead>
+                  <TableHead className="hidden md:table-cell">Range</TableHead>
+                  {gate.map((g) => (
+                    <TableHead key={g.key} className="text-right">
+                      {g.label}
+                    </TableHead>
+                  ))}
+                  <TableHead className="text-right">Passing</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {snapshots.map((s) => {
+                  const v = s.values ?? {};
+                  const passed = typeof v.passed === "number" ? v.passed : gate.filter((g) => v[`${g.key}Pass`] === true).length;
+                  return (
+                    <TableRow key={s.id}>
+                      <TableCell>
+                        <span className="block">{formatDate(s.takenAt)}</span>
+                        {s.note ? <span className="block max-w-48 truncate text-xs text-muted-foreground">{s.note}</span> : null}
+                      </TableCell>
+                      <TableCell className="hidden text-xs text-muted-foreground md:table-cell">
+                        {s.rangeFrom ? formatDate(s.rangeFrom) : "-"} to{" "}
+                        {s.rangeTo ? formatDate(addDays(s.rangeTo, -1)) : "-"}
+                      </TableCell>
+                      {gate.map((g) => {
+                        const pass = v[`${g.key}Pass`];
+                        return (
+                          <TableCell
+                            key={g.key}
+                            className={cn(
+                              "text-right font-mono tabular-nums",
+                              pass === true && "text-success",
+                              pass === false && "text-destructive",
+                            )}
+                          >
+                            {snapshotValue(g.key, v[g.key])}
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell className="text-right font-mono tabular-nums">
+                        {passed}/{gate.length}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

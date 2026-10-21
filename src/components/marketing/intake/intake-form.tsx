@@ -30,6 +30,7 @@ import {
 import { hasWhatsapp, site, whatsappLink } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
+import { detailQuestionsFor, DETAIL_YES_NO, type DetailQuestion } from "./details-questions";
 import {
   INTAKE_COUNTRIES,
   intakeSchema,
@@ -104,6 +105,70 @@ function DescriptionCount({ control }: { control: Control<IntakeInput, unknown, 
     <span className="shrink-0 tabular-nums" aria-hidden="true">
       {value?.length ?? 0}/4000
     </span>
+  );
+}
+
+function DetailsFields({ control }: { control: Control<IntakeInput, unknown, IntakeValues> }) {
+  const category = useWatch({ control, name: "category" });
+  const questions = detailQuestionsFor(category);
+  if (!questions.length) return null;
+  return (
+    <FieldSet>
+      <FieldLegend variant="label" className="text-sm">
+        A few quick questions <span className="font-normal text-muted-foreground">(all optional)</span>
+      </FieldLegend>
+      <FieldGroup className="gap-5 sm:grid sm:grid-cols-2">
+        {questions.map((q) => (
+          <DetailField key={`${category}-${q.key}`} control={control} question={q} />
+        ))}
+      </FieldGroup>
+    </FieldSet>
+  );
+}
+
+function DetailField({
+  control,
+  question,
+}: {
+  control: Control<IntakeInput, unknown, IntakeValues>;
+  question: DetailQuestion;
+}) {
+  const id = `intake-details-${question.key}`;
+  const options = question.type === "yesno" ? DETAIL_YES_NO : question.options;
+  return (
+    <Controller
+      name={`details.${question.key}`}
+      control={control}
+      render={({ field }) => (
+        <Field>
+          <FieldLabel htmlFor={id}>{question.label}</FieldLabel>
+          {options ? (
+            <Select name={field.name} value={field.value ?? ""} onValueChange={field.onChange}>
+              <SelectTrigger id={id} onBlur={field.onBlur} className={triggerClass}>
+                <SelectValue placeholder="Choose">{field.value || undefined}</SelectValue>
+              </SelectTrigger>
+              <SelectContent position="popper">
+                {options.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              {...field}
+              value={field.value ?? ""}
+              id={id}
+              type={question.type === "date" ? "date" : "text"}
+              maxLength={500}
+              placeholder={question.placeholder}
+              className={inputClass}
+            />
+          )}
+        </Field>
+      )}
+    />
   );
 }
 
@@ -251,6 +316,8 @@ function IntakeFields({
                 </Field>
               )}
             />
+
+            <DetailsFields control={form.control} />
 
             <Controller
               name="urgency"

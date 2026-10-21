@@ -2,6 +2,7 @@ import { ExternalLinkIcon, PencilIcon } from "lucide-react";
 import { Suspense } from "react";
 
 import { ActionButton } from "@/components/admin/action-form";
+import { ArchiveButton, ArchivedBadge, ShowArchivedToggle } from "@/components/admin/archive-controls";
 import { ContentStatusBadge, ToneBadge } from "@/components/admin/badges";
 import { EmptyState } from "@/components/admin/empty-state";
 import { FilterBar } from "@/components/admin/filter-bar";
@@ -11,7 +12,7 @@ import { HelpButton } from "@/components/admin/help-button";
 import { ContentForm, MarkPostedForm } from "@/components/admin/forms/content-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
-import { setContentStatusAction } from "@/lib/actions/content";
+import { archiveContentAction, setContentStatusAction, unarchiveContentAction } from "@/lib/actions/content";
 import { requireAdmin } from "@/lib/auth";
 import {
   CONTENT_FORMATS,
@@ -55,6 +56,7 @@ async function ContentCalendar({ searchParams }: { searchParams: PageProps<"/adm
   const rows = await listContent(f);
   const now = new Date();
   const thisWeek = startOfWeekUtc(now).getTime();
+  const values = { q: f.q, status: f.status, format: f.format, archived: f.archived ? "1" : undefined };
 
   const groups = new Map<string, { title: string; sort: number; items: ContentItem[] }>();
   for (const item of rows) {
@@ -80,9 +82,12 @@ async function ContentCalendar({ searchParams }: { searchParams: PageProps<"/adm
 
   return (
     <>
+      <div className="mb-3">
+        <ShowArchivedToggle basePath="/admin/content" params={values} on={f.archived} />
+      </div>
       <FilterBar
         basePath="/admin/content"
-        values={f}
+        values={values}
         searchPlaceholder="Title"
         filters={[
           { name: "status", label: "Statuses", options: enumOptions(CONTENT_STATUSES, CONTENT_STATUS_LABELS) },
@@ -111,6 +116,7 @@ async function ContentCalendar({ searchParams }: { searchParams: PageProps<"/adm
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-medium">{item.title}</span>
                           <ContentStatusBadge status={item.status} />
+                          <ArchivedBadge archivedAt={item.archivedAt} />
                           {late ? <ToneBadge tone="danger">Late</ToneBadge> : null}
                         </div>
                         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -146,6 +152,15 @@ async function ContentCalendar({ searchParams }: { searchParams: PageProps<"/adm
                         >
                           <ContentForm item={item} />
                         </FormDialog>
+                        <ArchiveButton
+                          id={item.id}
+                          archivedAt={item.archivedAt}
+                          archive={archiveContentAction}
+                          unarchive={unarchiveContentAction}
+                          noun="content item"
+                          size="icon-sm"
+                          iconOnly
+                        />
                       </div>
                     </li>
                   );

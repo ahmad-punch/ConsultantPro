@@ -1,6 +1,6 @@
 import "server-only";
 
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { asc, desc, eq, isNull, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { ambassadors, cases, channels, clients } from "@/lib/db/schema";
@@ -14,7 +14,7 @@ export function commissionDue(revenueUsd: number, commissionPct: number, totalPa
   return { earned, due: Math.max(0, earned - totalPaidUsd) };
 }
 
-export async function listAmbassadors() {
+export async function listAmbassadors(includeArchived = false) {
   const rows = await db
     .select({
       ambassador: ambassadors,
@@ -23,6 +23,7 @@ export async function listAmbassadors() {
       channelCount: sql<number>`(select count(*)::int from ${channels} where ${channels.ambassadorId} = ${ambassadors.id})`,
     })
     .from(ambassadors)
+    .where(includeArchived ? undefined : isNull(ambassadors.archivedAt))
     .orderBy(desc(ambassadors.active), asc(ambassadors.name));
   return rows.map((r) => ({
     ...r,

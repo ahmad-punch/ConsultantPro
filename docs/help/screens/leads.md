@@ -83,6 +83,26 @@ The case starts Unpaid at the Intake stage. Converting does not take any money.
 
 Shows on a converted lead. It takes you to the case the lead became.
 
+### Import CSV
+
+Next to New lead. Paste CSV text or choose a `.csv` file, then press Preview. Header: `name,whatsapp,email,country,category,urgency,description,referral_code,source`. Required: name, whatsapp, country, category (one of the category keys, e.g. `property`), description. Empty urgency becomes Normal and empty source becomes `import`. Rows whose WhatsApp number (digits only) matches an existing lead or an earlier row are skipped as duplicates. Press Import to add only the OK rows.
+
+### Archive
+
+Hides the record from the lists without deleting it. Nothing else changes: links, payments and history stay as they were. Use it for test rows, duplicates and records you no longer work on. You are asked to confirm first.
+
+### Unarchive
+
+Shown instead of Archive on an archived record. Puts it back in the normal lists.
+
+### Show archived
+
+A toggle above the list. Turns on `?archived=1` so archived records are listed too, each with a grey "Archived" badge. Press it again ("Hide archived") to go back.
+
+### Details
+
+On a lead from the website, the answers to the category questions on `/start` (for example district and type of record for property). They are copied into the case summary when you press Convert to case.
+
 ## How it connects to other screens
 
 - **Public site.** The "Start a case" form creates leads here.

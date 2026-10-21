@@ -15,7 +15,7 @@ import "server-only";
  *   memoDeliveredAt, for cases created in range with a memo delivered.
  * - Would recommend: closed cases in range with an answer; share answering yes.
  */
-import { and, asc, eq, gte, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNull, lt, or } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 
 import { db } from "@/lib/db";
@@ -29,7 +29,7 @@ import {
   type ChannelStatus,
   type ProductType,
 } from "@/lib/db/enums";
-import { cases, channels, leads, payments, retainers } from "@/lib/db/schema";
+import { cases, channels, leads, metricsSnapshots, payments, retainers } from "@/lib/db/schema";
 
 import { median, workingDaysBetween } from "./time";
 
@@ -78,7 +78,7 @@ export async function getMetrics(range: MetricsRange) {
         createdAt: cases.createdAt,
       })
       .from(cases)
-      .where(inRange(cases.createdAt)),
+      .where(and(inRange(cases.createdAt), isNull(cases.archivedAt))),
     db
       .select({
         amountUsd: payments.amountUsd,
@@ -88,7 +88,13 @@ export async function getMetrics(range: MetricsRange) {
       })
       .from(payments)
       .leftJoin(cases, eq(payments.caseId, cases.id))
-      .where(and(eq(payments.status, "paid"), inRange(payments.paidAt))),
+      .where(
+        and(
+          eq(payments.status, "paid"),
+          inRange(payments.paidAt),
+          or(isNull(payments.caseId), isNull(cases.archivedAt)),
+        ),
+      ),
     db
       .select({ id: retainers.id, tier: retainers.tier, status: retainers.status })
       .from(retainers)
@@ -96,8 +102,11 @@ export async function getMetrics(range: MetricsRange) {
     db
       .select({ source: leads.source, status: leads.status })
       .from(leads)
-      .where(inRange(leads.createdAt)),
-    db.select({ platform: channels.platform, status: channels.status }).from(channels),
+      .where(and(inRange(leads.createdAt), isNull(leads.archivedAt))),
+    db
+      .select({ platform: channels.platform, status: channels.status })
+      .from(channels)
+      .where(isNull(channels.archivedAt)),
   ]);
 
   /* ------------------------------------------------------------ gate */
@@ -239,3 +248,31 @@ export async function getMetrics(range: MetricsRange) {
   };
 }
 export type Metrics = Awaited<ReturnType<typeof getMetrics>>;
+
+
+/* ------------------------------------------------------- snapshots */
+
+/** Flatten the gate into the jsonb shape stored on metrics_snapshots. */
+export function gateToSnapshotValues(gate: GateMetric[]): Record<string, number | boolean | null> {
+  const out: Record<string, number | boolean | null> = {};
+  for (const g of gate) {
+    out[g.key] = g.value;
+    out[`${g.key}Pass`] = g.pass;
+  }
+  out.passed = gate.filter((g) => g.pass === true).length;
+  return out;
+}
+
+/** Compute the gate for `range` now and store it. Call after requireAdmin(). */
+export async function saveMetricsSnapshot(range: MetricsRange, note: string | null) {
+  const { gate } = await getMetrics(range);
+  const [row] = await db
+    .insert(metricsSnapshots)
+    .values({ rangeFrom: range.from, rangeTo: range.to, values: gateToSnapshotValues(gate), note })
+    .returning({ id: metricsSnapshots.id });
+  return row.id;
+}
+
+export async function listMetricsSnapshots(limit = 50) {
+  return db.select().from(metricsSnapshots).orderBy(desc(metricsSnapshots.takenAt)).limit(limit);
+}
