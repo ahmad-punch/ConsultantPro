@@ -6,6 +6,12 @@ const nextConfig: NextConfig = {
   // PGlite ships WASM and data files that must be loaded from node_modules at
   // runtime, not bundled. See docs/LEARNINGS.md.
   serverExternalPackages: ["@electric-sql/pglite"],
+  // Markdown read with fs at request time (/admin/project, /admin/help,
+  // guides) is not traced automatically, so ship it with every server route.
+  // Keys are route globs; "/*" matches all routes.
+  outputFileTracingIncludes: {
+    "/*": ["./docs/**/*", "./content/**/*"],
+  },
   turbopack: {
     rules: {
       "*.css": {

@@ -4,6 +4,8 @@ import {
   BarChart3Icon,
   BriefcaseIcon,
   CalendarDaysIcon,
+  CircleHelpIcon,
+  ClipboardListIcon,
   CreditCardIcon,
   HandshakeIcon,
   InboxIcon,
@@ -37,6 +39,8 @@ export const NAV_ITEMS = [
   { href: "/admin/payments", label: "Payments", icon: CreditCardIcon },
   { href: "/admin/retainers", label: "Retainers", icon: RepeatIcon },
   { href: "/admin/metrics", label: "Metrics", icon: BarChart3Icon },
+  { href: "/admin/project", label: "Project", icon: ClipboardListIcon },
+  { href: "/admin/help", label: "Help", icon: CircleHelpIcon },
   { href: "/admin/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
