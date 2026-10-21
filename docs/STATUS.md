@@ -3,6 +3,7 @@
 Updated: 2026-10-21. One line per item. Move items between sections, do not delete them.
 
 ## Done
+- Partner network: recruitment pages, applications pipeline, provider onboarding and tiers, engagements with anti-poaching, dispatch board with batching (decision 0004).
 - Business plan and research (see `docs/research/` and the plan summary in `docs/BUSINESS-PLAN.md`).
 - Repo initialised, Next.js scaffold, docs structure.
 - Foundation: schema + migrations, db client (Neon / PGlite), seed data, admin auth + proxy, brand config, pricing config, design tokens, shadcn UI kit. `pnpm lint`, `typecheck`, `build`, `db:seed` pass.
@@ -33,6 +34,8 @@ Updated: 2026-10-21. One line per item. Move items between sections, do not dele
 - Control panel follow-ups: CSV import for channels (`marketing/channels.csv`), delete/archive for records entered by mistake, per-person logins if the team grows beyond the founders.
 
 ## Open decisions
+- Partner agreement (`marketing/partner-agreement-template.md`) needs counsel review; ambassador share 10-15% is an assumption.
+- Add `departments` / `serviceAreas` columns to `partner_applications` (now tagged lines in notes) and an edit form for provider departments/service areas.
 - Site placeholders shown as visible `TODO:` markers: advisers on `/about`, legal entity, contact email, Wise/Payoneer confirmation, refund wording, retention periods, liability cap and governing law in the legal drafts.
 - Legal pages (`/legal/*`) are drafts and need counsel review before launch.
 - Fill `TODO:` placeholders in `src/lib/site.ts` (WhatsApp number, email, legal entity, socials) once decided.

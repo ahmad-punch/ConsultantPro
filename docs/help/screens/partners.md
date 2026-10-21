@@ -54,6 +54,24 @@ Each row has a small pencil button. Its accessible name is "Edit" followed by th
 
 Saves the edit. To stop using a partner without losing history, untick "Active" and save. They disappear from the partner choices on new cases but stay on their old cases.
 
+### Mark agreement sent
+On the provider page: you have sent the partner agreement (`marketing/partner-agreement-template.md`). Stage moves from Applied to Agreement sent.
+
+### Record agreement signed
+Records the agreement version, the date signed and that the no-poaching clause was accepted. Needed before a trial case or any engagement.
+
+### Start trial
+Moves a signed provider to Trial case and makes them available for one closely watched engagement.
+
+### Activate
+Moves a provider to Active. Also lifts a suspension.
+
+### Suspend
+For breaches: poaching, side fees, keeping documents, claims of influence. Records the reason; the provider disappears from dispatch and from "Engage provider".
+
+### Apply tier
+Shown when the suggested tier (from completed engagements, on-time rate, rating and disputes; thresholds in decision 0004) differs from the current one. Nothing changes until you press it.
+
 ## How it connects to other screens
 
 - **Cases.** You choose a partner on the New case form or in Case details. Only active partners appear in that list. The case page shows the partner name and their SLA.
