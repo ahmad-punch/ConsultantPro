@@ -9,6 +9,9 @@ Updated: 2026-10-21. One line per item. Move items between sections, do not dele
 - Public site: all pages in `src/app/(marketing)/`, intake form writing to `leads`, guides from MDX, sitemap, OG image, JSON-LD. Lint, typecheck and build pass; checked at 1440px and 375px.
 - Control panel: all sections in `src/app/(admin)/admin/` (dashboard, leads, cases with board view, clients, partners, ambassadors, channels, content, payments, retainers, metrics, settings). Lint, typecheck and build pass; clicked through convert lead, advance stage, record payment, metrics; no horizontal scroll at 375px.
 - Content: 10 pathway guides in `content/guides/`, and marketing assets in `marketing/` (strategy, WhatsApp posts, group scripts, ambassador pitch, FAQ replies, objection handling, price sheet, video scripts, email sequence, channels CSV). Needs a native Urdu review and a lawyer fact-check before launch.
+- Project page `/admin/project`: status, open decisions, decision records, changelog and learnings rendered from the markdown in `docs/` at request time. Lint (own files), typecheck and build pass; all tabs checked at 1440px and 375px.
+- Help content: all files in `docs/help/` written against the current admin code (screens, workflows, glossary, public site, agents guide). A few `TODO: confirm` markers remain for business rules (ambassador commission basis, refund netting, part-paid managed cases).
+- Help system: `/admin/help` and `/admin/help/[...slug]` render `docs/help/`; contextual `HelpButton`s on every admin screen header and the key actions. Lint, typecheck and build pass; checked at 375px.
 
 ## In progress
 - Nothing in progress.

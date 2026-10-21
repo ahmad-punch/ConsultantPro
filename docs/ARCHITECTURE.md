@@ -77,3 +77,13 @@ Shared files (`schema.ts`, `pricing.ts`, `site.ts`) change only through the foun
 - Lighthouse accessibility 95+ on the public site (semantic HTML, labels, contrast).
 - No lorem ipsum, no fake names, no fake numbers. Placeholders are `TODO:`-prefixed and visibly marked.
 - Copy is plain English; Urdu where the contract says so.
+
+## Documentation and help system (source of truth)
+Markdown in the repo is the single source of truth. The admin panel renders it; agents read it. Never duplicate explanations in component code.
+
+- `docs/CHANGELOG.md`, `docs/STATUS.md`, `docs/LEARNINGS.md`, `docs/decisions/*.md` render at `/admin/project` (tabs: Status, Open decisions, Decisions, Changelog, Learnings). Loader: `src/lib/project-docs.ts`.
+- `docs/help/` is the help centre, rendered at `/admin/help` and `/admin/help/[...slug]`. Loader: `src/lib/help.ts`. Frontmatter: `title`, `slug` (path-like, e.g. `screens/cases`), `summary`, `audience` (everyone | staff | agents), `order`.
+- Layout of `docs/help/`: `README.md` (how to maintain), `what-rasta-is.md`, `how-the-business-works.md`, `glossary.md`, `workflows.md`, `public-site.md`, `for-agents.md`, and `screens/<screen>.md` for every admin screen (dashboard, leads, cases, clients, partners, ambassadors, channels, content, payments, retainers, metrics, settings, project, help).
+- Every `screens/*.md` uses these H2 headings in this order: `Why this screen exists`, `What you see`, `Buttons and actions` (one H3 per button or action, using the exact label shown in the UI), `How it connects to other screens`, `Common mistakes`.
+- Contextual help: `<HelpButton topic="cases" section="advance-stage" />` (`src/components/admin/help-button.tsx`) opens a side sheet with `docs/help/screens/cases.md`, scrolled to the heading whose slug is `advance-stage`, with a link to the full page. `topic` is the screen file name; `section` is the kebab-case slug of an H3 under "Buttons and actions" or of any H2.
+- Next.js on Vercel only ships files it can trace: `next.config.ts` has `outputFileTracingIncludes` for `docs/**` and `content/**` so request-time reads work in production.
