@@ -7,32 +7,40 @@
  * Neon (DATABASE_URL set): refuses to run unless you pass `--force`, because
  * it deletes every row.
  */
-import { config } from "dotenv";
+import { eq, sql } from "drizzle-orm";
 
-config({ path: [".env.local", ".env"], quiet: true });
+import { formatCaseNumber } from "../ids";
+import type { Database } from "./index";
+import * as s from "./schema";
 
-type Db = typeof import("./index").db;
-
-const now = Date.now();
+// Wall-clock time without Date.now(): demo mode can import this module during
+// a render, where Next.js rejects Date.now() under cacheComponents.
+const now = Math.round(performance.timeOrigin + performance.now());
 const DAY = 24 * 60 * 60 * 1000;
 const daysAgo = (n: number) => new Date(now - n * DAY);
 const daysFromNow = (n: number) => new Date(now + n * DAY);
 
-async function main() {
-  if (process.env.DATABASE_URL && !process.argv.includes("--force")) {
-    console.error(
-      "DATABASE_URL is set. Seeding deletes every row. Re-run with `pnpm db:seed --force` if you mean it.",
-    );
-    process.exit(1);
-  }
+export type SeedCounts = Record<
+  | "team"
+  | "partners"
+  | "ambassadors"
+  | "channels"
+  | "clients"
+  | "cases"
+  | "notes"
+  | "leads"
+  | "retainers"
+  | "payments"
+  | "content",
+  number
+>;
 
-  const { db, closeDb, getDbDriver } = await import("./index");
-  const s = await import("./schema");
-  const { formatCaseNumber } = await import("../ids");
-  const { sql } = await import("drizzle-orm");
-
-  console.log(`Seeding (${getDbDriver()})...`);
-
+/**
+ * Wipe every table and load the demo data into `db`. Used by the CLI below
+ * and by demo mode (in-memory PGlite on a deploy without DATABASE_URL).
+ * Returns the row counts per table.
+ */
+export async function seedDatabase(db: Database): Promise<SeedCounts> {
   await db.execute(
     sql`truncate table payments, retainers, case_notes, leads, cases, clients, channels, content_items, partners, ambassadors, team_members restart identity cascade`,
   );
@@ -264,7 +272,6 @@ async function main() {
     caseRows.push(row);
   }
   // Case 9 was referred by the client's own first case; case 2 by an ambassador.
-  const { eq } = await import("drizzle-orm");
   await db
     .update(s.cases)
     .set({ referredByCaseId: caseRows[0].id })
@@ -350,17 +357,50 @@ async function main() {
 
   const counts = await Promise.all(
     [s.teamMembers, s.partners, s.ambassadors, s.channels, s.clients, s.cases, s.caseNotes, s.leads, s.retainers, s.payments, s.contentItems].map(
-      async (table) => (await (db as Db).select({ n: sql<number>`count(*)::int` }).from(table))[0]?.n ?? 0,
+      async (table) => (await db.select({ n: sql<number>`count(*)::int` }).from(table))[0]?.n ?? 0,
     ),
   );
-  console.log(
-    `Seeded: team ${counts[0]}, partners ${counts[1]}, ambassadors ${counts[2]}, channels ${counts[3]}, clients ${counts[4]}, cases ${counts[5]}, notes ${counts[6]}, leads ${counts[7]}, retainers ${counts[8]}, payments ${counts[9]}, content ${counts[10]}.`,
-  );
+  return {
+    team: counts[0],
+    partners: counts[1],
+    ambassadors: counts[2],
+    channels: counts[3],
+    clients: counts[4],
+    cases: counts[5],
+    notes: counts[6],
+    leads: counts[7],
+    retainers: counts[8],
+    payments: counts[9],
+    content: counts[10],
+  };
+}
 
+/* ------------------------------------------------------------ CLI */
+async function main() {
+  const { config } = await import("dotenv");
+  config({ path: [".env.local", ".env"], quiet: true });
+
+  if (process.env.DATABASE_URL && !process.argv.includes("--force")) {
+    console.error(
+      "DATABASE_URL is set. Seeding deletes every row. Re-run with `pnpm db:seed --force` if you mean it.",
+    );
+    process.exit(1);
+  }
+
+  const { db, closeDb, getDbDriver } = await import("./index");
+  console.log(`Seeding (${getDbDriver()})...`);
+  const n = await seedDatabase(db);
+  console.log(
+    `Seeded: team ${n.team}, partners ${n.partners}, ambassadors ${n.ambassadors}, channels ${n.channels}, clients ${n.clients}, cases ${n.cases}, notes ${n.notes}, leads ${n.leads}, retainers ${n.retainers}, payments ${n.payments}, content ${n.content}.`,
+  );
   await closeDb();
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+// Run only when executed directly (`pnpm db:seed`), not when imported by the
+// app for demo mode.
+if (/[\\/]seed\.[cm]?[jt]s$/.test(process.argv[1] ?? "")) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

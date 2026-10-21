@@ -8,9 +8,10 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@electric-sql/pglite"],
   // Markdown read with fs at request time (/admin/project, /admin/help,
   // guides) is not traced automatically, so ship it with every server route.
-  // Keys are route globs; "/*" matches all routes.
+  // drizzle/ ships too: demo mode (no DATABASE_URL) migrates an in-memory
+  // PGlite at startup. Keys are route globs; "/*" matches all routes.
   outputFileTracingIncludes: {
-    "/*": ["./docs/**/*", "./content/**/*"],
+    "/*": ["./docs/**/*", "./content/**/*", "./drizzle/**/*"],
   },
   turbopack: {
     rules: {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { isDemoMode } from "@/lib/db/demo";
 import { emailLink, hasWhatsapp, isPlaceholder, site, whatsappLink } from "@/lib/site";
 
 import { Logo } from "./logo";
@@ -100,6 +101,7 @@ export function SiteFooter() {
             )}
           </p>
           <p>&copy; {site.name}. All rights reserved.</p>
+          {isDemoMode() ? <p>Demo site: sample data only, reset regularly.</p> : null}
         </div>
       </Container>
     </footer>

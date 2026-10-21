@@ -2,9 +2,14 @@
  * Database client.
  *
  * - DATABASE_URL set   -> Neon over HTTP (drizzle-orm/neon-http). Production.
- * - DATABASE_URL unset -> PGlite (embedded Postgres) persisted to `.pglite/`.
- *   During `next build` without DATABASE_URL an in-memory PGlite is used so
- *   parallel build workers never open the same data folder.
+ * - DATABASE_URL unset, development -> PGlite (embedded Postgres) persisted
+ *   to `.pglite/`.
+ * - DATABASE_URL unset, deployed (NODE_ENV=production or VERCEL set) -> demo
+ *   mode: in-memory PGlite, migrated and loaded with the demo seed once per
+ *   process (unless DEMO_SEED=0). Data resets on every cold start and may
+ *   differ between serverless instances. See src/lib/db/demo.ts.
+ * - During `next build` without DATABASE_URL an in-memory PGlite (no seed) is
+ *   used so parallel build workers never open the same data folder.
  *
  * PGlite applies the SQL migrations in `drizzle/` automatically before the
  * first query runs (every query waits on that promise). Neon is migrated
@@ -27,6 +32,7 @@ import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import { migrate as migratePglite } from "drizzle-orm/pglite/migrator";
 
+import { isDemoMode, shouldSeedDemo } from "./demo";
 import * as schema from "./schema";
 
 export { schema };
@@ -43,13 +49,19 @@ const PGLITE_DIR = path.join(process.cwd(), ".pglite");
 type DbHandle = {
   db: Database;
   driver: DbDriver;
-  /** Resolves once the database is ready (PGlite: migrations applied). */
+  /**
+   * Resolves once the database is ready (PGlite: migrations applied, demo
+   * seed loaded). Created once per handle, so concurrent first requests all
+   * wait on the same initialisation.
+   */
   ready: Promise<void>;
   close: () => Promise<void>;
 };
 
 declare global {
-  // Survives Next dev HMR so PGlite is opened once per process.
+  // Survives Next dev HMR so PGlite is opened once per process. Created
+  // synchronously on first use, so there is only ever one handle (and one
+  // `ready` promise) per process.
   var __rastaDb: DbHandle | undefined;
 }
 
@@ -63,13 +75,23 @@ function createNeon(url: string): DbHandle {
   };
 }
 
-function createPglite(dataDir: string | undefined): DbHandle {
+function createPglite(dataDir: string | undefined, seedDemo = false): DbHandle {
   const raw = new PGlite(dataDir);
   const ready = (async () => {
     await raw.waitReady;
-    await migratePglite(drizzlePglite(raw, { schema, casing: CASING }), {
-      migrationsFolder: MIGRATIONS_FOLDER,
-    });
+    // Ungated instance: the gated client below waits on this very promise.
+    const direct = drizzlePglite(raw, { schema, casing: CASING });
+    await migratePglite(direct, { migrationsFolder: MIGRATIONS_FOLDER });
+    if (seedDemo) {
+      try {
+        const { seedDatabase } = await import("./seed");
+        await seedDatabase(direct as unknown as Database);
+        console.info("[db] Demo mode: in-memory database seeded with demo data.");
+      } catch (error) {
+        // An empty database still works; do not take the site down.
+        console.error("[db] Demo mode: seeding failed.", error);
+      }
+    }
   })();
   // Avoid an unhandled rejection; the error surfaces on the first query.
   ready.catch(() => {});
@@ -102,7 +124,9 @@ function createHandle(): DbHandle {
   const url = process.env.DATABASE_URL;
   if (url) return createNeon(url);
   const isBuild = process.env.NEXT_PHASE === "phase-production-build";
-  return createPglite(isBuild ? undefined : PGLITE_DIR);
+  if (isBuild) return createPglite(undefined);
+  if (isDemoMode()) return createPglite(undefined, shouldSeedDemo());
+  return createPglite(PGLITE_DIR);
 }
 
 function getHandle(): DbHandle {
