@@ -193,6 +193,7 @@ export const retainerTiers = [
     unit: "per month",
     turnaround: "Dedicated manager; priority on everything",
     includes: [
+      "Everything in Plus (quarterly land-record check, monthly call, priority handling)",
       "Dedicated case manager",
       "Unlimited Pathway Questions",
       "2 errands a month",
