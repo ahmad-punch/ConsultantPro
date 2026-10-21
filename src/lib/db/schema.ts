@@ -27,8 +27,13 @@ import {
   CONTENT_FORMATS,
   CONTENT_LANGUAGES,
   CONTENT_STATUSES,
+  APPLICATION_STATUSES,
+  APPLICATION_TYPES,
   DOCUMENT_TYPES,
+  ENGAGEMENT_STATUSES,
   INVOICE_STATUSES,
+  ONBOARDING_STAGES,
+  PARTNER_TIERS,
   LEAD_STATUSES,
   LEAD_URGENCIES,
   PARTNER_TYPES,
@@ -60,6 +65,11 @@ export const paymentMethodEnum = pgEnum("payment_method", PAYMENT_METHODS);
 export const teamRoleEnum = pgEnum("team_role", TEAM_ROLES);
 export const documentTypeEnum = pgEnum("document_type", DOCUMENT_TYPES);
 export const invoiceStatusEnum = pgEnum("invoice_status", INVOICE_STATUSES);
+export const applicationTypeEnum = pgEnum("application_type", APPLICATION_TYPES);
+export const applicationStatusEnum = pgEnum("application_status", APPLICATION_STATUSES);
+export const partnerTierEnum = pgEnum("partner_tier", PARTNER_TIERS);
+export const onboardingStageEnum = pgEnum("onboarding_stage", ONBOARDING_STAGES);
+export const engagementStatusEnum = pgEnum("engagement_status", ENGAGEMENT_STATUSES);
 
 /* -------------------------------------------------------------- helpers */
 
@@ -132,6 +142,17 @@ export const partners = pgTable("partners", {
   slaDays: integer(),
   rating: integer(),
   active: boolean().notNull().default(true),
+  tier: partnerTierEnum().notNull().default("probation"),
+  onboardingStage: onboardingStageEnum().notNull().default("applied"),
+  barCouncilNumber: text(),
+  specialties: text(),
+  languages: text(),
+  bio: text(),
+  agreementVersion: text(),
+  agreementSignedAt: ts(),
+  noPoachingAcceptedAt: ts(),
+  casesCompleted: integer().notNull().default(0),
+  avgRating: integer(),
   archivedAt: ts(),
   ...timestamps,
 });
@@ -293,6 +314,70 @@ export const payments = pgTable(
 
 /* ------------------------------------------------------------ relations */
 
+
+
+/* ------------------------------------------------- partner network */
+
+export const partnerApplications = pgTable(
+  "partner_applications",
+  {
+    id: id(),
+    type: applicationTypeEnum().notNull(),
+    status: applicationStatusEnum().notNull().default("new"),
+    name: text().notNull(),
+    email: text(),
+    whatsapp: text().notNull(),
+    country: text().notNull().default("Pakistan"),
+    city: text(),
+    barCouncilNumber: text(),
+    yearsExperience: integer(),
+    specialties: text(),
+    languages: text(),
+    bio: text(),
+    channelOrNetwork: text(),
+    source: text().notNull().default("website"),
+    acceptedTermsAt: ts(),
+    notes: text(),
+    reviewedAt: ts(),
+    convertedPartnerId: uuid().references(() => partners.id, { onDelete: "set null" }),
+    convertedAmbassadorId: uuid().references(() => ambassadors.id, { onDelete: "set null" }),
+    archivedAt: ts(),
+    ...timestamps,
+  },
+  (t) => [index("partner_applications_status_idx").on(t.status)],
+);
+
+export const partnerEngagements = pgTable(
+  "partner_engagements",
+  {
+    id: id(),
+    partnerId: uuid()
+      .notNull()
+      .references(() => partners.id, { onDelete: "restrict" }),
+    caseId: uuid()
+      .notNull()
+      .references(() => cases.id, { onDelete: "restrict" }),
+    role: text().notNull().default("advocate"),
+    status: engagementStatusEnum().notNull().default("proposed"),
+    agreedFeeUsd: integer().notNull().default(0),
+    /** "partner" = advocate bills the client directly (default for legal work); "company" = we bill and pay out. */
+    feeBilledBy: text().notNull().default("partner"),
+    slaDays: integer(),
+    dueAt: ts(),
+    noPoachingAcknowledgedAt: ts(),
+    rating: integer(),
+    ratingNote: text(),
+    startedAt: ts(),
+    deliveredAt: ts(),
+    completedAt: ts(),
+    notes: text(),
+    ...timestamps,
+  },
+  (t) => [
+    index("partner_engagements_partner_id_idx").on(t.partnerId),
+    index("partner_engagements_case_id_idx").on(t.caseId),
+  ],
+);
 
 /* ------------------------------------------------- documents & exports */
 
@@ -480,6 +565,16 @@ export const retainersRelations = relations(retainers, ({ one, many }) => ({
   payments: many(payments),
 }));
 
+export const partnerApplicationsRelations = relations(partnerApplications, ({ one }) => ({
+  partner: one(partners, { fields: [partnerApplications.convertedPartnerId], references: [partners.id] }),
+  ambassador: one(ambassadors, { fields: [partnerApplications.convertedAmbassadorId], references: [ambassadors.id] }),
+}));
+
+export const partnerEngagementsRelations = relations(partnerEngagements, ({ one }) => ({
+  partner: one(partners, { fields: [partnerEngagements.partnerId], references: [partners.id] }),
+  case: one(cases, { fields: [partnerEngagements.caseId], references: [cases.id] }),
+}));
+
 export const invoicesRelations = relations(invoices, ({ one, many }) => ({
   client: one(clients, { fields: [invoices.clientId], references: [clients.id] }),
   case: one(cases, { fields: [invoices.caseId], references: [cases.id] }),
@@ -543,3 +638,7 @@ export type GeneratedDocument = typeof generatedDocuments.$inferSelect;
 export type NewGeneratedDocument = typeof generatedDocuments.$inferInsert;
 export type MetricsSnapshot = typeof metricsSnapshots.$inferSelect;
 export type NewMetricsSnapshot = typeof metricsSnapshots.$inferInsert;
+export type PartnerApplication = typeof partnerApplications.$inferSelect;
+export type NewPartnerApplication = typeof partnerApplications.$inferInsert;
+export type PartnerEngagement = typeof partnerEngagements.$inferSelect;
+export type NewPartnerEngagement = typeof partnerEngagements.$inferInsert;

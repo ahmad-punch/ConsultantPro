@@ -108,6 +108,57 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   case_summary: "Case summary",
 };
 
+export const APPLICATION_TYPES = ["advocate", "errand_runner", "accountant", "ambassador"] as const;
+export type ApplicationType = (typeof APPLICATION_TYPES)[number];
+export const APPLICATION_TYPE_LABELS: Record<ApplicationType, string> = {
+  advocate: "Advocate",
+  errand_runner: "Errand runner",
+  accountant: "Accountant / tax adviser",
+  ambassador: "Community ambassador",
+};
+
+export const APPLICATION_STATUSES = ["new", "reviewing", "interview", "approved", "rejected"] as const;
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
+export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
+  new: "New",
+  reviewing: "Reviewing",
+  interview: "Interview",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
+export const PARTNER_TIERS = ["probation", "bronze", "silver", "gold"] as const;
+export type PartnerTier = (typeof PARTNER_TIERS)[number];
+export const PARTNER_TIER_LABELS: Record<PartnerTier, string> = {
+  probation: "Probation",
+  bronze: "Bronze",
+  silver: "Silver",
+  gold: "Gold",
+};
+
+export const ONBOARDING_STAGES = ["applied", "agreement_sent", "agreement_signed", "trial_case", "active", "suspended"] as const;
+export type OnboardingStage = (typeof ONBOARDING_STAGES)[number];
+export const ONBOARDING_STAGE_LABELS: Record<OnboardingStage, string> = {
+  applied: "Applied",
+  agreement_sent: "Agreement sent",
+  agreement_signed: "Agreement signed",
+  trial_case: "Trial case",
+  active: "Active",
+  suspended: "Suspended",
+};
+
+export const ENGAGEMENT_STATUSES = ["proposed", "accepted", "in_progress", "delivered", "completed", "cancelled", "disputed"] as const;
+export type EngagementStatus = (typeof ENGAGEMENT_STATUSES)[number];
+export const ENGAGEMENT_STATUS_LABELS: Record<EngagementStatus, string> = {
+  proposed: "Proposed",
+  accepted: "Accepted",
+  in_progress: "In progress",
+  delivered: "Delivered",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  disputed: "Disputed",
+};
+
 export const INVOICE_STATUSES = ["draft", "sent", "paid", "void"] as const;
 export type InvoiceStatus = (typeof INVOICE_STATUSES)[number];
 export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
