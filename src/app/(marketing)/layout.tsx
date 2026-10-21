@@ -1,31 +1,35 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 
+import { JsonLd, organizationJsonLd } from "@/components/marketing/json-ld";
+import { SiteFooter } from "@/components/marketing/site-footer";
+import { SiteHeader } from "@/components/marketing/site-header";
 import { site } from "@/lib/site";
 
-// Placeholder shell. The marketing-site agent replaces this file.
+export const metadata: Metadata = {
+  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }] },
+  openGraph: {
+    type: "website",
+    siteName: site.name,
+    locale: "en_GB",
+  },
+  twitter: { card: "summary_large_image" },
+};
+
 export default function MarketingLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="border-b">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
-          <Link href="/" className="font-display text-xl font-semibold text-primary">
-            {site.name}
-          </Link>
-          <nav aria-label="Main" className="hidden gap-6 text-sm md:flex">
-            {site.nav.map((item) => (
-              <Link key={item.href} href={item.href} className="hover:text-primary">
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      </header>
-      <main className="flex-1">{children}</main>
-      <footer className="border-t">
-        <div className="mx-auto max-w-6xl px-4 py-6 text-xs text-muted-foreground">
-          <p>{site.disclaimer}</p>
-        </div>
-      </footer>
+    <div className="flex min-h-dvh flex-col overflow-x-clip">
+      <a
+        href="#main"
+        className="sr-only z-50 rounded-md bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+      >
+        Skip to content
+      </a>
+      <SiteHeader />
+      <main id="main" className="flex-1">
+        {children}
+      </main>
+      <SiteFooter />
+      <JsonLd data={organizationJsonLd()} />
     </div>
   );
 }
