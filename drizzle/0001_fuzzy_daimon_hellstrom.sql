@@ -94,7 +94,7 @@ CREATE TABLE "metrics_snapshots" (
 );
 --> statement-breakpoint
 ALTER TABLE "ambassadors" ADD COLUMN "archived_at" timestamp with time zone;--> statement-breakpoint
-ALTER TABLE "cases" ADD COLUMN "public_token" text NOT NULL;--> statement-breakpoint
+ALTER TABLE "cases" ADD COLUMN "public_token" text NOT NULL DEFAULT gen_random_uuid()::text;--> statement-breakpoint
 ALTER TABLE "cases" ADD COLUMN "archived_at" timestamp with time zone;--> statement-breakpoint
 ALTER TABLE "channels" ADD COLUMN "archived_at" timestamp with time zone;--> statement-breakpoint
 ALTER TABLE "clients" ADD COLUMN "archived_at" timestamp with time zone;--> statement-breakpoint
