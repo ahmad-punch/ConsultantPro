@@ -15,11 +15,13 @@ Updated: 2026-10-21. One line per item. Move items between sections, do not dele
 
 - Client touchpoints: status page `/c/[token]`, admin copy-link row, Stripe webhook, Resend emails (intake confirmation, memo delivered), `/api/health`. Lint and own-file typecheck pass.
 - Operations tools: archive/unarchive with Show archived toggles, CSV import for channels and leads, intake category questions into `leads.details`, metrics snapshots with history. Typecheck and own-file lint pass; checked in the browser (archive/unarchive a channel, import 3 channels, property intake details on a lead, save snapshot).
+- Documents and invoicing: branding settings, document templates with defaults per type, invoices/receipts/quotes with Mark sent / Mark paid / Void / Duplicate, PDF via `@react-pdf/renderer` plus a print-view fallback, generated engagement letters and case summaries, CSV exports for nine entities. Lint and typecheck pass; build compiles (prerender stopped on another owner's `/admin/network/applications/[id]` route); checked in the browser (branding save, template edit, invoice from a case, PDF route, cases CSV).
 
 ## In progress
 - Nothing in progress.
 
 ## Next
+- Invoicing follow-ups: real company legal name, address, tax number and bank details in Branding (placeholders now); email invoices from the panel; part payments.
 - Deploy to Vercel (free tier), set env vars, connect Neon Postgres. Steps in `docs/DEPLOY.md`.
 - Native Urdu review of guides and posts; lawyer fact-check of guides and legal pages.
 - Stripe payment links through a UK or US entity. Then set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` and add the webhook endpoint (`docs/DEPLOY.md`).

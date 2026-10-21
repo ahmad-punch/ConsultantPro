@@ -4,6 +4,11 @@ Format: Keep a Changelog. Newest first. Group by Added / Changed / Fixed / Remov
 
 ## [Unreleased]
 ### Added
+- Invoices (`/admin/invoices`): invoices, receipts and quotes with `INV-0001` numbering, status filter and totals, new invoice form (case prefill from the case price, line items, tax, template), detail preview, Mark sent, Mark paid (creates a payment, sets the case paid, logs a note), Void, Duplicate, PDF download (`/admin/invoices/[id]/pdf`) and a print view fallback. Client, branding and template are snapshotted at creation. "Create invoice" button on the case page.
+- Documents (`/admin/documents`): branding settings with live preview, document templates (create, edit, duplicate, make default, sections and options) with idempotent default templates per type, generated engagement letters and case summaries (`generated_documents`, PDF at `/admin/documents/[id]/pdf`), and an Exports tab.
+- PDF rendering with `@react-pdf/renderer` (`src/lib/pdf/document.tsx`, one layout driven by `DocModel` in `src/lib/pdf/model.ts`).
+- CSV exports at `/admin/export/[entity]` for cases, leads, clients, payments, invoices, ambassadors, channels, partners and retainers, optional `?from=&to=`; `src/lib/csv.ts` (RFC 4180 quoting, UTF-8 BOM, formula-injection guard). Public status tokens are never exported.
+- Help: `docs/help/screens/invoices.md` and `docs/help/screens/documents.md`.
 - Archive and unarchive for cases, leads, clients, partners, ambassadors, channels and content items (`archivedAt`); lists hide archived rows unless "Show archived" (`?archived=1`); metrics exclude archived rows; archiving a case writes a case note.
 - CSV import for channels and leads (paste or file, server-side zod validation, preview with per-row errors, dedupe by name+platform and by WhatsApp digits). Parser in `src/lib/import/csv-parse.ts`.
 - Category-specific questions on `/start`, saved to `leads.details`, shown on the lead page and copied into the case summary on conversion.

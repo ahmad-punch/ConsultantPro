@@ -11,6 +11,8 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { ActionButton } from "@/components/admin/action-form";
+import { ArchiveButton, ArchivedBadge } from "@/components/admin/archive-controls";
+import { CopyButton } from "@/components/admin/copy-button";
 import { PaymentBadge, StageBadge, ToneBadge } from "@/components/admin/badges";
 import { EmptyState } from "@/components/admin/empty-state";
 import { dueLabel, formatDate, formatDateTime, formatUsd } from "@/components/admin/format";
@@ -22,7 +24,12 @@ import { PaymentForm } from "@/components/admin/forms/payment-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { DetailSkeleton } from "@/components/admin/skeletons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { advanceStageAction, markMemoDeliveredAction } from "@/lib/actions/cases";
+import {
+  advanceStageAction,
+  archiveCaseAction,
+  markMemoDeliveredAction,
+  unarchiveCaseAction,
+} from "@/lib/actions/cases";
 import { requireAdmin } from "@/lib/auth";
 import {
   CASE_CATEGORY_LABELS,
@@ -31,6 +38,7 @@ import {
   PRODUCT_LABELS,
   type CaseStage,
 } from "@/lib/db/enums";
+import { caseStatusUrl } from "@/lib/payments/links";
 import { getCase, type CaseDetail } from "@/lib/queries/cases";
 import {
   getAmbassadorOptions,
@@ -42,6 +50,7 @@ import { isUuid } from "@/lib/queries/params";
 import { workingDaysBetween } from "@/lib/queries/time";
 import { cn } from "@/lib/utils";
 import { nextStage, stagePath } from "@/lib/validation/cases";
+import { EngagementsPanel } from "./engagements-panel";
 
 export const metadata = { title: "Case" };
 
@@ -86,6 +95,7 @@ async function CaseView({ params }: { params: PageProps<"/admin/cases/[id]">["pa
             <Link href={`/admin/clients/${c.client.id}`} className="hover:text-primary hover:underline">
               {c.client.name}
             </Link>
+            <ArchivedBadge archivedAt={c.archivedAt} />
           </span>
         }
         description={
@@ -127,6 +137,12 @@ async function CaseView({ params }: { params: PageProps<"/admin/cases/[id]">["pa
               </FormDialog>
               <HelpButton topic="cases" section="record-payment" />
             </div>
+            <Link
+              href={`/admin/invoices/new?caseId=${c.id}`}
+              className="inline-flex h-8 items-center rounded-md border bg-background px-3 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground"
+            >
+              Create invoice
+            </Link>
             <div className="inline-flex items-center gap-0.5">
               <FormDialog triggerLabel="Set stage" triggerVariant="outline" triggerSize="sm" title="Set stage" description="Use this to skip, go back, or decline. The change is logged.">
                 <SetStageForm id={c.id} stage={c.stage} />
@@ -145,9 +161,18 @@ async function CaseView({ params }: { params: PageProps<"/admin/cases/[id]">["pa
               </FormDialog>
               <HelpButton topic="cases" section="close-out" />
             </div>
+            <ArchiveButton
+              id={c.id}
+              archivedAt={c.archivedAt}
+              archive={archiveCaseAction}
+              unarchive={unarchiveCaseAction}
+              noun="case"
+            />
           </>
         }
       />
+
+      <StatusLinkRow url={caseStatusUrl(c.publicToken)} />
 
       <StageStepper c={c} />
 
@@ -167,6 +192,7 @@ async function CaseView({ params }: { params: PageProps<"/admin/cases/[id]">["pa
               </p>
             </CardContent>
           </Card>
+          <EngagementsPanel caseId={c.id} />
 
           <Card>
             <CardHeader>
@@ -403,5 +429,23 @@ function ExtLink({ href }: { href: string | null }) {
     <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
       Open <ExternalLinkIcon className="size-3" />
     </a>
+  );
+}
+
+function StatusLinkRow({ url }: { url: string }) {
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+      <span className="font-medium">Client status link</span>
+      <HelpButton topic="cases" section="client-status-link" />
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground hover:text-foreground hover:underline"
+      >
+        {url}
+      </a>
+      <CopyButton value={url} label="Copy link" />
+    </div>
   );
 }
