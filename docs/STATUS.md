@@ -5,12 +5,12 @@ Updated: 2026-10-21. One line per item. Move items between sections, do not dele
 ## Done
 - Business plan and research (see `docs/research/` and the plan summary in `docs/BUSINESS-PLAN.md`).
 - Repo initialised, Next.js scaffold, docs structure.
+- Foundation: schema + migrations, db client (Neon / PGlite), seed data, admin auth + proxy, brand config, pricing config, design tokens, shadcn UI kit. `pnpm lint`, `typecheck`, `build`, `db:seed` pass.
+- Content: 10 pathway guides in `content/guides/`, and marketing assets in `marketing/` (strategy, WhatsApp posts, group scripts, ambassador pitch, FAQ replies, objection handling, price sheet, video scripts, email sequence, channels CSV). Needs a native Urdu review and a lawyer fact-check before launch.
 
 ## In progress
-- Foundation: schema, db client, auth, brand config, pricing config, UI kit.
 - Public site (marketing).
 - Control panel (admin).
-- Content: pathway guides, marketing assets, strategy.
 
 ## Next
 - Deploy to Vercel (free tier), set env vars, connect Neon Postgres.
@@ -20,6 +20,7 @@ Updated: 2026-10-21. One line per item. Move items between sections, do not dele
 - Run the 90-day test (plan Section 10).
 
 ## Open decisions
+- Fill `TODO:` placeholders in `src/lib/site.ts` (WhatsApp number, email, legal entity, socials) once decided.
 - Brand name and domain. Working name "Rasta" (راستہ). See decision 0002.
 - Customer-facing entity: UK Ltd vs US LLC.
 - Which advocate fee flow to use (plan Section 4.7, options a or b). Needs a Bar Council member.

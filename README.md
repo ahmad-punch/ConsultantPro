@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rasta
 
-## Getting Started
+Website, control panel, content and marketing assets for Rasta, a navigation and case-management service for overseas Pakistanis.
 
-First, run the development server:
+Start with [`CLAUDE.md`](CLAUDE.md) (rules and commands), then [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (stack, folders, data model, ownership) and [`docs/STATUS.md`](docs/STATUS.md) (what is done and next).
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm db:seed     # optional: demo data in a local PGlite database (.pglite/)
+pnpm dev         # http://localhost:3000, control panel at /admin (dev password: admin)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+No environment variables are needed locally. Copy `.env.example` to `.env.local` to set them; `DATABASE_URL` switches from local PGlite to Neon.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Command | What it does |
+|---|---|
+| `pnpm lint && pnpm typecheck && pnpm build` | Must pass before any commit |
+| `pnpm db:generate` | Write a SQL migration to `drizzle/` after changing `src/lib/db/schema.ts` |
+| `pnpm db:migrate` | Apply migrations to `DATABASE_URL` (or local PGlite) |
+| `pnpm db:push` | Push the schema straight to `DATABASE_URL` (Neon only) |
+| `pnpm db:seed` | Replace all data with demo data (stop `pnpm dev` first) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Decisions live in [`docs/decisions/`](docs/decisions/), gotchas in [`docs/LEARNINGS.md`](docs/LEARNINGS.md), the business plan in [`docs/BUSINESS-PLAN.md`](docs/BUSINESS-PLAN.md).
