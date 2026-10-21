@@ -22,6 +22,13 @@
       "when": 1792558459840,
       "tag": "0002_rare_doctor_octopus",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792558483770,
+      "tag": "0003_mushy_doomsday",
+      "breakpoints": true
     }
   ]
 }

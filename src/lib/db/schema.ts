@@ -146,8 +146,13 @@ export const partners = pgTable("partners", {
   onboardingStage: onboardingStageEnum().notNull().default("applied"),
   barCouncilNumber: text(),
   specialties: text(),
+  /** Government offices this provider can work with, comma separated: NADRA, FBR, Land Revenue, SECP, Courts, HEC, Passport, Police. */
+  departments: text(),
+  /** Cities or districts served, comma separated. */
+  serviceAreas: text(),
   languages: text(),
   bio: text(),
+  availabilityNote: text(),
   agreementVersion: text(),
   agreementSignedAt: ts(),
   noPoachingAcceptedAt: ts(),
@@ -170,6 +175,10 @@ export const cases = pgTable(
     stage: caseStageEnum().notNull().default("intake"),
     priceUsd: integer().notNull().default(0),
     paymentStatus: paymentStatusEnum().notNull().default("unpaid"),
+    /** Which office the work happens at (NADRA, FBR, Land Revenue, SECP, Courts, ...). Used by the dispatch board. */
+    department: text(),
+    /** City or district where the work physically happens. Used to pool errands. */
+    locationCity: text(),
     publicToken: text().notNull().$defaultFn(() => crypto.randomUUID()),
     archivedAt: ts(),
     paymentLink: text(),
@@ -362,6 +371,10 @@ export const partnerEngagements = pgTable(
     agreedFeeUsd: integer().notNull().default(0),
     /** "partner" = advocate bills the client directly (default for legal work); "company" = we bill and pay out. */
     feeBilledBy: text().notNull().default("partner"),
+    department: text(),
+    locationCity: text(),
+    /** Engagements with the same batchKey are run together on one visit (pooling). */
+    batchKey: text(),
     slaDays: integer(),
     dueAt: ts(),
     noPoachingAcknowledgedAt: ts(),
