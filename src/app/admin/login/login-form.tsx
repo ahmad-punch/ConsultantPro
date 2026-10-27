@@ -9,9 +9,24 @@ import { loginAction, type LoginState } from "@/lib/auth-actions";
 
 export function LoginForm({ next }: { next: string }) {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(loginAction, {});
+  const invalid = state.error ? true : undefined;
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="next" value={next} />
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="username"
+          required
+          defaultValue={state.email}
+          key={state.email ?? "email"}
+          aria-invalid={invalid}
+          aria-describedby={state.error ? "login-error" : undefined}
+        />
+      </div>
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
         <Input
@@ -20,15 +35,15 @@ export function LoginForm({ next }: { next: string }) {
           type="password"
           autoComplete="current-password"
           required
-          aria-invalid={state.error ? true : undefined}
-          aria-describedby={state.error ? "password-error" : undefined}
+          aria-invalid={invalid}
+          aria-describedby={state.error ? "login-error" : undefined}
         />
-        {state.error ? (
-          <p id="password-error" role="alert" className="text-sm text-destructive">
-            {state.error}
-          </p>
-        ) : null}
       </div>
+      {state.error ? (
+        <p id="login-error" role="alert" className="text-sm text-destructive">
+          {state.error}
+        </p>
+      ) : null}
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? "Signing in..." : "Sign in"}
       </Button>

@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { archiveClientAction, unarchiveClientAction } from "@/lib/actions/clients";
 import { cancelRetainerAction } from "@/lib/actions/retainers";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { CASE_CATEGORY_LABELS, PRODUCT_LABELS, RETAINER_TIER_LABELS } from "@/lib/db/enums";
 import { getClient } from "@/lib/queries/clients";
 import { getAmbassadorOptions } from "@/lib/queries/options";
@@ -34,7 +34,7 @@ export default function ClientPage({ params }: PageProps<"/admin/clients/[id]">)
 }
 
 async function ClientView({ params }: { params: PageProps<"/admin/clients/[id]">["params"] }) {
-  await requireAdmin();
+  await requirePermission("clients.view");
   const { id } = await params;
   if (!isUuid(id)) notFound();
   const [client, ambassadors] = await Promise.all([getClient(id), getAmbassadorOptions(true)]);

@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { archivePartnerAction, unarchivePartnerAction } from "@/lib/actions/partners";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { PARTNER_TYPES, PARTNER_TYPE_LABELS } from "@/lib/db/enums";
 import { listPartners, readPartnerFilters } from "@/lib/queries/partners";
 
@@ -39,7 +39,7 @@ export default function PartnersPage({ searchParams }: PageProps<"/admin/partner
 }
 
 async function Partners({ searchParams }: { searchParams: PageProps<"/admin/partners">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("partners.view");
   const f = readPartnerFilters(await searchParams);
   const rows = await listPartners(f);
   const values = { q: f.q, type: f.type, active: f.active, archived: f.archived ? "1" : undefined };

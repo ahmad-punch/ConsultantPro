@@ -15,7 +15,7 @@ import {
 } from "@/components/admin/project/sections";
 import { CardsSkeleton, TableSkeleton } from "@/components/admin/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { getChangelog, getDecisions, getLearnings, getStatus, PROJECT_DOC_PATHS } from "@/lib/project-docs";
 import { enumParam } from "@/lib/queries/params";
 
@@ -48,7 +48,7 @@ export default function ProjectPage({ searchParams }: PageProps<"/admin/project"
 }
 
 async function Project({ searchParams }: { searchParams: PageProps<"/admin/project">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("project.view");
   const sp = await searchParams;
   const initial: TabValue = enumParam(sp, "tab", TAB_VALUES) ?? "status";
 

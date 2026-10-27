@@ -10,7 +10,7 @@ import { AudienceBadge, HelpNav } from "@/components/admin/help/help-nav";
 import { ScrollToHash } from "@/components/admin/help/scroll-to-hash";
 import { PageHeader } from "@/components/admin/page-header";
 import { DetailSkeleton } from "@/components/admin/skeletons";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import {
   getHelpDoc,
   getHelpHeadings,
@@ -34,7 +34,7 @@ export default function HelpDocPage({ params }: PageProps<"/admin/help/[...slug]
 }
 
 async function HelpDocView({ params }: { params: Params }) {
-  await requireAdmin();
+  await requirePermission("help.view");
   const { slug } = await params;
   const path = slug.map((s) => decodeURIComponent(s)).join("/");
   const doc = getHelpDoc(path);

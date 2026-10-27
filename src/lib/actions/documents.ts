@@ -2,7 +2,7 @@
 
 import { and, eq, ne } from "drizzle-orm";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { DOCUMENT_TYPE_LABELS, CASE_STAGE_LABELS, PRODUCT_LABELS, CASE_CATEGORY_LABELS } from "@/lib/db/enums";
 import { cases, clients, documentTemplates, generatedDocuments } from "@/lib/db/schema";
@@ -23,7 +23,7 @@ async function clearOtherDefaults(type: (typeof documentTemplates.$inferSelect)[
 
 /** Create or update a template. Marking it default unsets the others of its type. */
 export async function saveTemplateAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("documents.templates");
   const parsed = parseForm(templateSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, showBankDetails, showSignature, showTaxLine, showCaseReference, ...v } = parsed.data;
@@ -45,7 +45,7 @@ export async function saveTemplateAction(_prev: FormState, formData: FormData): 
 }
 
 export async function duplicateTemplateAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("documents.templates");
   const parsed = parseForm(idOnlySchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -67,7 +67,7 @@ export async function duplicateTemplateAction(_prev: FormState, formData: FormDa
 }
 
 export async function setDefaultTemplateAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("documents.templates");
   const parsed = parseForm(idOnlySchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -87,7 +87,7 @@ export async function setDefaultTemplateAction(_prev: FormState, formData: FormD
  * case. The full render model is stored in `payload` so the PDF never changes.
  */
 export async function generateDocumentAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(generateDocumentSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { caseId, templateId, note } = parsed.data;

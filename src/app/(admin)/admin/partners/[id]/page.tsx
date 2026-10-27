@@ -20,7 +20,7 @@ import {
   startTrialAction,
   suspendProviderAction,
 } from "@/lib/actions/network";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { ONBOARDING_STAGES, ONBOARDING_STAGE_LABELS, PARTNER_TIER_LABELS, PARTNER_TYPE_LABELS } from "@/lib/db/enums";
 import { getProvider } from "@/lib/queries/network";
 import { isUuid } from "@/lib/queries/params";
@@ -40,7 +40,7 @@ export default function ProviderPage({ params }: PageProps<"/admin/partners/[id]
 }
 
 async function ProviderView({ params }: { params: PageProps<"/admin/partners/[id]">["params"] }) {
-  await requireAdmin();
+  await requirePermission("partners.view");
   const { id } = await params;
   if (!isUuid(id)) notFound();
   const data = await getProvider(id);

@@ -10,7 +10,7 @@ import { AmbassadorForm } from "@/components/admin/forms/ambassador-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { listAmbassadors } from "@/lib/queries/ambassadors";
 import { param } from "@/lib/queries/params";
 
@@ -37,7 +37,7 @@ export default function AmbassadorsPage({ searchParams }: PageProps<"/admin/amba
 }
 
 async function Ambassadors({ searchParams }: { searchParams: PageProps<"/admin/ambassadors">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("ambassadors.view");
   const archived = param(await searchParams, "archived") === "1";
   const rows = await listAmbassadors(archived);
   const toggle = (

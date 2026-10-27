@@ -16,7 +16,7 @@ import { TableSkeleton } from "@/components/admin/skeletons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { archiveChannelAction, logChannelPostAction, unarchiveChannelAction } from "@/lib/actions/channels";
 import { ImportChannelsDialog } from "@/components/admin/import/import-dialogs";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import {
   CHANNEL_PLATFORMS,
   CHANNEL_PLATFORM_LABELS,
@@ -45,7 +45,7 @@ export default function ChannelsPage({ searchParams }: PageProps<"/admin/channel
 }
 
 async function Channels({ searchParams }: { searchParams: PageProps<"/admin/channels">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("channels.view");
   const f = readChannelFilters(await searchParams);
   const now = new Date();
   const [rows, ambassadors] = await Promise.all([listChannels(f, now), getAmbassadorOptions(true)]);

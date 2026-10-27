@@ -7,7 +7,7 @@ import { EngagementActions } from "@/components/admin/network/engagement-actions
 import { EngagementForm } from "@/components/admin/network/engagement-form";
 import { EngagementStatusBadge } from "@/components/admin/network/network-badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { cases, partners } from "@/lib/db/schema";
 import { engagementsForCase } from "@/lib/queries/engagements";
@@ -16,7 +16,7 @@ import { and, eq, isNotNull, isNull, ne } from "drizzle-orm";
 
 /** Engagements for one case plus "Engage provider". Rendered inside the case page's Suspense boundary. */
 export async function EngagementsPanel({ caseId }: { caseId: string }) {
-  await requireAdmin();
+  await requirePermission("cases.view");
   const [rows, [c], providers] = await Promise.all([
     engagementsForCase(caseId),
     db.select({ department: cases.department, locationCity: cases.locationCity, category: cases.category }).from(cases).where(eq(cases.id, caseId)).limit(1),

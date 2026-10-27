@@ -9,7 +9,7 @@ import { EngagementStatusBadge, TierBadge } from "@/components/admin/network/net
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { ENGAGEMENT_STATUSES, ENGAGEMENT_STATUS_LABELS } from "@/lib/db/enums";
 import { listEngagements, readEngagementFilters } from "@/lib/queries/engagements";
 
@@ -32,7 +32,7 @@ export default function EngagementsPage({ searchParams }: PageProps<"/admin/netw
 }
 
 async function Engagements({ searchParams }: { searchParams: PageProps<"/admin/network/engagements">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("network.view");
   const f = readEngagementFilters(await searchParams);
   const rows = await listEngagements(f);
   return (

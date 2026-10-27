@@ -5,7 +5,7 @@ import { formatShortDate } from "@/components/admin/format";
 import { DispatchGroupCard } from "@/components/admin/network/dispatch-group";
 import { PageHeader } from "@/components/admin/page-header";
 import { CardsSkeleton } from "@/components/admin/skeletons";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { ENGAGEMENT_STATUS_LABELS, type EngagementStatus } from "@/lib/db/enums";
 import { getDispatchBoard, rankedProvidersFor } from "@/lib/queries/network";
 import { param } from "@/lib/queries/params";
@@ -29,7 +29,7 @@ export default function DispatchPage({ searchParams }: PageProps<"/admin/network
 }
 
 async function Board({ searchParams }: { searchParams: PageProps<"/admin/network/dispatch">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("network.view");
   const focus = param(await searchParams, "focus")?.toLowerCase();
   const groups = await getDispatchBoard();
   if (groups.length === 0) {

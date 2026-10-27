@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { CONTENT_STATUS_LABELS } from "@/lib/db/enums";
 import { contentItems } from "@/lib/db/schema";
@@ -18,7 +18,7 @@ import { setArchived } from "./archive-helper";
 import { done, failed, parseForm, revalidateAdmin, unexpected } from "./helpers";
 
 export async function createContentAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(contentSchema, formData);
   if (!parsed.ok) return parsed.state;
   const v = parsed.data;
@@ -35,7 +35,7 @@ export async function createContentAction(_prev: FormState, formData: FormData):
 }
 
 export async function updateContentAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(contentUpdateSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, ...values } = parsed.data;
@@ -53,7 +53,7 @@ export async function updateContentAction(_prev: FormState, formData: FormData):
 }
 
 export async function setContentStatusAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(contentStatusChangeSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, status } = parsed.data;
@@ -70,7 +70,7 @@ export async function setContentStatusAction(_prev: FormState, formData: FormDat
 }
 
 export async function markContentPostedAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(contentPostedSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, url, postedAt } = parsed.data;
@@ -87,11 +87,11 @@ export async function markContentPostedAction(_prev: FormState, formData: FormDa
 }
 
 export async function archiveContentAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.archive");
   return setArchived("contentItems", formData, true, "content item");
 }
 
 export async function unarchiveContentAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.archive");
   return setArchived("contentItems", formData, false, "content item");
 }

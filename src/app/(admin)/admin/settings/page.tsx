@@ -7,11 +7,12 @@ import { FormDialog } from "@/components/admin/form-dialog";
 import { HelpButton } from "@/components/admin/help-button";
 import { ActorForm, TeamMemberForm } from "@/components/admin/forms/team-form";
 import { PageHeader } from "@/components/admin/page-header";
+import { RolesCard } from "@/components/admin/roles-card";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toggleTeamMemberAction } from "@/lib/actions/team";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { getDbDriver } from "@/lib/db";
 import { TEAM_ROLE_LABELS } from "@/lib/db/enums";
 import { offerings, getStripeLink } from "@/lib/pricing";
@@ -37,7 +38,7 @@ export default function SettingsPage() {
 }
 
 async function Settings() {
-  await requireAdmin();
+  await requirePermission("settings.manage");
   const [team, actor] = await Promise.all([listTeam(), getActorLabel()]);
   const driver = getDbDriver();
   const activeTeam = team.filter((t) => t.member.active).map((t) => ({ value: t.member.id, label: t.member.name }));
@@ -55,7 +56,14 @@ async function Settings() {
       ok: driver === "neon" || process.env.NODE_ENV !== "production",
       hint: "DATABASE_URL",
     },
-    { label: "Admin password", value: process.env.ADMIN_PASSWORD ? "Set" : "Dev default", ok: !!process.env.ADMIN_PASSWORD, hint: "ADMIN_PASSWORD" },
+    {
+      label: "Super admin sign-in",
+      value: process.env.SUPER_ADMIN_EMAIL && process.env.SUPER_ADMIN_PASSWORD ? "Set" : process.env.ADMIN_PASSWORD ? "Legacy (ADMIN_PASSWORD is super admin)" : "Dev default",
+      ok: !!(process.env.SUPER_ADMIN_EMAIL && process.env.SUPER_ADMIN_PASSWORD),
+      hint: "SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD",
+    },
+    { label: "Staff password", value: process.env.ADMIN_PASSWORD ? "Set" : "Dev default", ok: !!process.env.ADMIN_PASSWORD, hint: "ADMIN_PASSWORD" },
+    { label: "Viewer password", value: process.env.VIEWER_PASSWORD ? "Set" : "Off", ok: true, hint: "VIEWER_PASSWORD (optional)" },
     { label: "Session secret", value: process.env.AUTH_SECRET ? "Set" : "Not set", ok: !!process.env.AUTH_SECRET, hint: "AUTH_SECRET" },
   ];
 
@@ -68,7 +76,7 @@ async function Settings() {
             <HelpButton topic="settings" section="acting-as" />
           </CardTitle>
           <CardDescription>
-            Everyone shares one password, so pick who you are on this browser. Your name goes on case notes and stage changes.
+            Staff share one password, so pick who you are on this browser. Your name goes on case notes and stage changes; when nothing is picked, notes are signed with your sign-in email.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -185,6 +193,8 @@ async function Settings() {
           </Table>
         </CardContent>
       </Card>
+
+      <RolesCard />
     </div>
   );
 }

@@ -12,7 +12,7 @@ import { TableSkeleton } from "@/components/admin/skeletons";
 import { SortLink } from "@/components/admin/sort-link";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import {
   CASE_CATEGORIES,
   CASE_CATEGORY_LABELS,
@@ -53,7 +53,7 @@ export default function CasesPage({ searchParams }: PageProps<"/admin/cases">) {
 }
 
 async function Cases({ searchParams }: { searchParams: SP }) {
-  await requireAdmin();
+  await requirePermission("cases.view");
   const sp = await searchParams;
   const f = readCaseFilters(sp);
   const board = param(sp, "view") === "board";

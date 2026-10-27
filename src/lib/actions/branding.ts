@@ -2,7 +2,7 @@
 
 import { asc, eq } from "drizzle-orm";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { brandingSettings } from "@/lib/db/schema";
 import { brandingSchema } from "@/lib/validation/documents";
@@ -12,7 +12,7 @@ import { done, parseForm, revalidateAdmin, unexpected } from "./helpers";
 
 /** Save the single branding row (insert the first time, update after). */
 export async function saveBrandingAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("documents.templates");
   const parsed = parseForm(brandingSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {

@@ -7,21 +7,25 @@ import {
   createSession,
   destroySession,
   safeNextPath,
-  verifyAdminPassword,
+  verifyCredentials,
 } from "@/lib/auth";
 
-export type LoginState = { error?: string };
+export type LoginState = { error?: string; email?: string };
 
-/** Server action for the login form: fields `password` and optional `next`. */
+/** Server action for the login form: fields `email`, `password` and optional `next`. */
 export async function loginAction(
   _prev: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
+  const email = formData.get("email");
   const password = formData.get("password");
-  if (typeof password !== "string" || !verifyAdminPassword(password)) {
-    return { error: "That password is not right." };
+  const emailText = typeof email === "string" ? email.trim().slice(0, 254) : "";
+  const user =
+    typeof password === "string" ? verifyCredentials(emailText, password) : null;
+  if (!user) {
+    return { error: "That email and password do not match.", email: emailText };
   }
-  await createSession();
+  await createSession(user);
   redirect(safeNextPath(formData.get("next")));
 }
 

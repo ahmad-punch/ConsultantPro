@@ -2,7 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { retainers } from "@/lib/db/schema";
 import type { FormState } from "@/lib/validation/fields";
@@ -11,7 +11,7 @@ import { retainerIdSchema, retainerSchema } from "@/lib/validation/retainers";
 import { done, failed, parseForm, revalidateAdmin, unexpected } from "./helpers";
 
 export async function createRetainerAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(retainerSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -24,7 +24,7 @@ export async function createRetainerAction(_prev: FormState, formData: FormData)
 }
 
 export async function cancelRetainerAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(retainerIdSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {

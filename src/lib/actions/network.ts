@@ -3,7 +3,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { PARTNER_TIERS } from "@/lib/db/enums";
 import { caseNotes, cases, partnerEngagements, partners } from "@/lib/db/schema";
@@ -16,7 +16,7 @@ import { done, failed, getActorName, parseForm, revalidateAdmin, unexpected } fr
 const idOnly = z.object({ id: idField() });
 
 async function setStage(formData: FormData, stage: "agreement_sent" | "trial_case" | "active", message: string): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(idOnly, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -56,7 +56,7 @@ const signedSchema = z.object({
 });
 
 export async function recordAgreementSignedAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(signedSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, agreementVersion, signedOn } = parsed.data;
@@ -76,7 +76,7 @@ export async function recordAgreementSignedAction(_prev: FormState, formData: Fo
 const suspendSchema = z.object({ id: idField(), reason: z.string().trim().min(3, "Give a reason.").max(1000) });
 
 export async function suspendProviderAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(suspendSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, reason } = parsed.data;
@@ -99,7 +99,7 @@ const tierSchema = z.object({ id: idField(), tier: z.enum(PARTNER_TIERS) });
 
 /** Applies a tier chosen by staff (the page suggests one from computeTier; nothing is written automatically). */
 export async function applyTierAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(tierSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -132,7 +132,7 @@ const batchSchema = z.object({
  * Form fields: `caseIds` and `engagementIds` (repeated).
  */
 export async function createBatchAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(batchSchema, formData);
   if (!parsed.ok) return parsed.state;
   const caseIds = formData.getAll("caseIds").map(String).filter((v) => z.uuid().safeParse(v).success);
@@ -199,7 +199,7 @@ const goingInSchema = z.object({
  * other pending items to the batch.
  */
 export async function goingInAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(goingInSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { partnerId, city, department } = parsed.data;

@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { DocumentPreview } from "@/components/admin/documents/document-preview";
 import { PrintButton } from "@/components/admin/documents/print-button";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { buildInvoiceModel, getInvoice } from "@/lib/queries/invoices";
 import { isUuid } from "@/lib/queries/params";
 
@@ -19,7 +19,7 @@ export default function PrintInvoicePage({ params }: PageProps<"/admin/invoices/
 }
 
 async function PrintInvoice({ params }: { params: PageProps<"/admin/invoices/[id]/print">["params"] }) {
-  await requireAdmin();
+  await requirePermission("invoices.view");
   const { id } = await params;
   if (!isUuid(id)) notFound();
   const d = await getInvoice(id);

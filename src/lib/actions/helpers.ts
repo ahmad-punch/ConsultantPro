@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { z } from "zod";
 
+import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cases } from "@/lib/db/schema";
 import { nextCaseNumber } from "@/lib/ids";
@@ -69,15 +70,19 @@ export function unexpected(error: unknown, what: string): FormState {
   return failed(`Could not ${what}. Try again; if it keeps failing, check the server log.`);
 }
 
-/** Name used on case notes: the team member chosen under Settings, "Acting as". */
+/**
+ * Name used on case notes: the team member chosen under Settings ("Acting as"),
+ * else the signed-in email, else a generic label.
+ */
 export async function getActorName(): Promise<string> {
   const store = await cookies();
   const raw = store.get(ACTOR_COOKIE)?.value;
-  if (!raw) return FALLBACK_ACTOR;
+  const fallback = (await getSession())?.email.slice(0, 100) || FALLBACK_ACTOR;
+  if (!raw) return fallback;
   try {
-    return decodeURIComponent(raw).slice(0, 100) || FALLBACK_ACTOR;
+    return decodeURIComponent(raw).slice(0, 100) || fallback;
   } catch {
-    return FALLBACK_ACTOR;
+    return fallback;
   }
 }
 

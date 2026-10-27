@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/admin/page-header";
 import { CardsSkeleton, TableSkeleton } from "@/components/admin/skeletons";
 import { StatCard } from "@/components/admin/stat-card";
 import { Card, CardContent, CardHeader, CardTitle, CardAction } from "@/components/ui/card";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { CASE_CATEGORY_LABELS, CASE_STAGE_LABELS, CASE_STAGES, PRODUCT_LABELS } from "@/lib/db/enums";
 import { getDashboard } from "@/lib/queries/dashboard";
 import { cn } from "@/lib/utils";
@@ -35,7 +35,7 @@ export default function DashboardPage() {
 }
 
 async function Dashboard() {
-  await requireAdmin();
+  await requirePermission("dashboard.view");
   const now = new Date();
   const d = await getDashboard(now);
   const actionCount = d.overdue.length + d.dueToday.length;

@@ -17,7 +17,7 @@ import { StatCard } from "@/components/admin/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { archiveAmbassadorAction, unarchiveAmbassadorAction } from "@/lib/actions/ambassadors";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { CHANNEL_PLATFORM_LABELS, PRODUCT_LABELS } from "@/lib/db/enums";
 import { getAmbassador } from "@/lib/queries/ambassadors";
 import { isUuid } from "@/lib/queries/params";
@@ -34,7 +34,7 @@ export default function AmbassadorPage({ params }: PageProps<"/admin/ambassadors
 }
 
 async function AmbassadorView({ params }: { params: PageProps<"/admin/ambassadors/[id]">["params"] }) {
-  await requireAdmin();
+  await requirePermission("ambassadors.view");
   const { id } = await params;
   if (!isUuid(id)) notFound();
   const a = await getAmbassador(id);

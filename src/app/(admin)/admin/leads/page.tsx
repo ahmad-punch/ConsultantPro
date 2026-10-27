@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import {
   CASE_CATEGORIES,
   CASE_CATEGORY_LABELS,
@@ -54,7 +54,7 @@ export default function LeadsPage({ searchParams }: PageProps<"/admin/leads">) {
 }
 
 async function LeadsTable({ searchParams }: { searchParams: PageProps<"/admin/leads">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("leads.view");
   const sp = await searchParams;
   const f = readLeadFilters(sp);
   const [rows, sources] = await Promise.all([listLeads(f), listLeadSources()]);

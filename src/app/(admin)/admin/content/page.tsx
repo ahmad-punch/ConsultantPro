@@ -13,7 +13,7 @@ import { ContentForm, MarkPostedForm } from "@/components/admin/forms/content-fo
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { archiveContentAction, setContentStatusAction, unarchiveContentAction } from "@/lib/actions/content";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import {
   CONTENT_FORMATS,
   CONTENT_FORMAT_LABELS,
@@ -51,7 +51,7 @@ export default function ContentPage({ searchParams }: PageProps<"/admin/content"
 }
 
 async function ContentCalendar({ searchParams }: { searchParams: PageProps<"/admin/content">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("content.view");
   const f = readContentFilters(await searchParams);
   const rows = await listContent(f);
   const now = new Date();

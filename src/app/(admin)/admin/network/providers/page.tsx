@@ -8,7 +8,7 @@ import { OnboardingBadge, TierBadge } from "@/components/admin/network/network-b
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { PARTNER_TIERS, PARTNER_TIER_LABELS, PARTNER_TYPES, PARTNER_TYPE_LABELS } from "@/lib/db/enums";
 import { listProviders, readProviderFilters } from "@/lib/queries/network";
 import { DEPARTMENTS, splitList } from "@/lib/validation/applications";
@@ -32,7 +32,7 @@ export default function ProvidersPage({ searchParams }: PageProps<"/admin/networ
 }
 
 async function Providers({ searchParams }: { searchParams: PageProps<"/admin/network/providers">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("network.view");
   const f = readProviderFilters(await searchParams);
   const rows = await listProviders(f);
   return (

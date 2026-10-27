@@ -1,11 +1,11 @@
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { pdfResponse, renderDocumentPdf } from "@/lib/pdf/document";
 import type { DocModel } from "@/lib/pdf/model";
 import { getGeneratedDocument } from "@/lib/queries/documents";
 import { isUuid } from "@/lib/queries/params";
 
 export async function GET(_req: Request, { params }: RouteContext<"/admin/documents/[id]/pdf">) {
-  await requireAdmin();
+  await requirePermission("documents.view");
   const { id } = await params;
   if (!isUuid(id)) return new Response("Not found", { status: 404 });
   const doc = await getGeneratedDocument(id);

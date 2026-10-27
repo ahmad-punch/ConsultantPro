@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { ambassadors, partnerApplications, partners } from "@/lib/db/schema";
 import {
@@ -20,7 +20,7 @@ import { z } from "zod";
 import { done, failed, isUniqueViolation, parseForm, revalidateAdmin, unexpected } from "./helpers";
 
 export async function setApplicationStatusAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(applicationStatusSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, status } = parsed.data;
@@ -35,7 +35,7 @@ export async function setApplicationStatusAction(_prev: FormState, formData: For
 }
 
 export async function saveApplicationNotesAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(applicationNotesSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -48,7 +48,7 @@ export async function saveApplicationNotesAction(_prev: FormState, formData: For
 }
 
 export async function rejectApplicationAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(rejectApplicationSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, reason } = parsed.data;
@@ -79,7 +79,7 @@ function referralCodeFor(name: string): string {
  * visible in the directory.
  */
 export async function approveApplicationAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(z.object({ id: idField() }), formData);
   if (!parsed.ok) return parsed.state;
   const { id } = parsed.data;

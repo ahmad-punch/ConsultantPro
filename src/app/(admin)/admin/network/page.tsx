@@ -8,7 +8,7 @@ import { ApplicationStatusBadge } from "@/components/admin/network/network-badge
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { APPLICATION_STATUSES, APPLICATION_STATUS_LABELS, APPLICATION_TYPES, APPLICATION_TYPE_LABELS } from "@/lib/db/enums";
 import { listApplications, readApplicationFilters } from "@/lib/queries/applications";
 
@@ -30,7 +30,7 @@ export default function ApplicationsPage({ searchParams }: PageProps<"/admin/net
 }
 
 async function Applications({ searchParams }: { searchParams: PageProps<"/admin/network">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("network.view");
   const f = readApplicationFilters(await searchParams);
   const rows = await listApplications(f);
   return (

@@ -10,7 +10,7 @@ import { ClientForm } from "@/components/admin/forms/client-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { listClients } from "@/lib/queries/clients";
 import { getAmbassadorOptions } from "@/lib/queries/options";
 import { param } from "@/lib/queries/params";
@@ -33,7 +33,7 @@ export default function ClientsPage({ searchParams }: PageProps<"/admin/clients"
 }
 
 async function Clients({ searchParams }: { searchParams: PageProps<"/admin/clients">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("clients.view");
   const sp = await searchParams;
   const q = param(sp, "q");
   const archived = param(sp, "archived") === "1";

@@ -10,7 +10,7 @@ import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { DOCUMENT_TYPE_LABELS, INVOICE_STATUSES, INVOICE_STATUS_LABELS } from "@/lib/db/enums";
 import { listInvoices, readInvoiceFilters } from "@/lib/queries/invoices";
 import { INVOICE_DOC_TYPES } from "@/lib/validation/invoices";
@@ -33,7 +33,7 @@ export default function InvoicesPage({ searchParams }: PageProps<"/admin/invoice
 }
 
 async function Invoices({ searchParams }: { searchParams: PageProps<"/admin/invoices">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("invoices.view");
   const f = readInvoiceFilters(await searchParams);
   const rows = await listInvoices(f);
   const live = rows.filter((r) => r.invoice.status !== "void" && r.invoice.type !== "quote");

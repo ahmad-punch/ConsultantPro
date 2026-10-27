@@ -16,7 +16,7 @@ import { TableSkeleton } from "@/components/admin/skeletons";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { duplicateTemplateAction, setDefaultTemplateAction } from "@/lib/actions/documents";
-import { requireAdmin } from "@/lib/auth";
+import { can, requirePermission, type Permission } from "@/lib/rbac";
 import { DOCUMENT_TYPE_LABELS } from "@/lib/db/enums";
 import { getBranding, listGeneratedDocuments, listTemplates } from "@/lib/queries/documents";
 import { getCaseOptions } from "@/lib/queries/options";
@@ -32,6 +32,13 @@ const TABS = [
   { id: "exports", label: "Exports" },
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
+
+const TAB_PERMISSIONS: Record<Tab, Permission> = {
+  templates: "documents.templates",
+  generated: "documents.view",
+  branding: "documents.templates",
+  exports: "data.export",
+};
 
 export default function DocumentsPage({ searchParams }: PageProps<"/admin/documents">) {
   return (
@@ -49,14 +56,16 @@ export default function DocumentsPage({ searchParams }: PageProps<"/admin/docume
 }
 
 async function Documents({ searchParams }: { searchParams: PageProps<"/admin/documents">["searchParams"] }) {
-  await requireAdmin();
+  const { role } = await requirePermission("documents.view");
+  // Templates and branding are super-admin only; exports need data.export.
+  const tabs = TABS.filter((t) => can(role, TAB_PERMISSIONS[t.id]));
   const sp = (await searchParams) as SearchParams;
   const raw = param(sp, "tab");
-  const tab: Tab = TABS.some((t) => t.id === raw) ? (raw as Tab) : "templates";
+  const tab: Tab = tabs.some((t) => t.id === raw) ? (raw as Tab) : (tabs[0]?.id ?? "generated");
   return (
     <div className="space-y-6">
       <nav className="flex flex-wrap gap-1 border-b" aria-label="Documents sections">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <Link
             key={t.id}
             href={`/admin/documents?tab=${t.id}`}

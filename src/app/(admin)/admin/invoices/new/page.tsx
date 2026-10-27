@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { InvoiceForm } from "@/components/admin/documents/invoice-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { DetailSkeleton } from "@/components/admin/skeletons";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { DOCUMENT_TYPE_LABELS } from "@/lib/db/enums";
 import { listTemplates } from "@/lib/queries/documents";
 import { getCaseBillingOptions } from "@/lib/queries/invoices";
@@ -36,7 +36,7 @@ export default function NewInvoicePage({ searchParams }: PageProps<"/admin/invoi
 }
 
 async function NewInvoice({ searchParams }: { searchParams: PageProps<"/admin/invoices/new">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const caseId = uuidParam(await searchParams, "caseId");
   const [clients, cases, templates] = await Promise.all([getClientOptions(), getCaseBillingOptions(), listTemplates()]);
   return (

@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { ENGAGEMENT_STATUS_LABELS } from "@/lib/db/enums";
 import { caseNotes, partnerEngagements, partners } from "@/lib/db/schema";
@@ -23,7 +23,7 @@ async function note(caseId: string, body: string) {
 }
 
 export async function createEngagementAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(engagementSchema, formData);
   if (!parsed.ok) return parsed.state;
   const v = parsed.data;
@@ -47,7 +47,7 @@ export async function createEngagementAction(_prev: FormState, formData: FormDat
 }
 
 export async function setEngagementStatusAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(engagementStatusSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, status } = parsed.data;
@@ -88,7 +88,7 @@ async function refreshPartnerStats(partnerId: string) {
 }
 
 export async function rateEngagementAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(rateEngagementSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, rating, ratingNote } = parsed.data;

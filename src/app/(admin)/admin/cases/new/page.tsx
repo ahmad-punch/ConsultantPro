@@ -4,7 +4,7 @@ import { CaseNewForm } from "@/components/admin/forms/case-new-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { DetailSkeleton } from "@/components/admin/skeletons";
 import { Card, CardContent } from "@/components/ui/card";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import {
   getAmbassadorOptions,
   getCaseOptions,
@@ -32,7 +32,7 @@ export default function NewCasePage({ searchParams }: PageProps<"/admin/cases/ne
 }
 
 async function NewCase({ searchParams }: { searchParams: PageProps<"/admin/cases/new">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const sp = await searchParams;
   const [clients, team, partners, ambassadors, cases] = await Promise.all([
     getClientOptions(),

@@ -16,7 +16,7 @@ import { DetailSkeleton } from "@/components/admin/skeletons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { archiveLeadAction, setLeadStatusAction, unarchiveLeadAction } from "@/lib/actions/leads";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { labelledDetails } from "@/components/marketing/intake/details-questions";
 import { CASE_CATEGORY_LABELS } from "@/lib/db/enums";
 import { getLead } from "@/lib/queries/leads";
@@ -34,7 +34,7 @@ export default function LeadPage({ params }: PageProps<"/admin/leads/[id]">) {
 }
 
 async function LeadDetail({ params }: { params: PageProps<"/admin/leads/[id]">["params"] }) {
-  await requireAdmin();
+  await requirePermission("leads.view");
   const { id } = await params;
   if (!isUuid(id)) notFound();
   const [lead, team] = await Promise.all([getLead(id), getTeamOptions()]);

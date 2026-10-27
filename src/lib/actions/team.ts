@@ -3,7 +3,7 @@
 import { eq, not } from "drizzle-orm";
 import { cookies } from "next/headers";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { teamMembers } from "@/lib/db/schema";
 import type { FormState } from "@/lib/validation/fields";
@@ -12,7 +12,7 @@ import { teamMemberIdSchema, teamMemberSchema } from "@/lib/validation/team";
 import { ACTOR_COOKIE, done, failed, parseForm, revalidateAdmin, unexpected } from "./helpers";
 
 export async function createTeamMemberAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("team.manage");
   const parsed = parseForm(teamMemberSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -26,7 +26,7 @@ export async function createTeamMemberAction(_prev: FormState, formData: FormDat
 
 /** Deactivate or reactivate a team member (they stay on past cases). */
 export async function toggleTeamMemberAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("team.manage");
   const parsed = parseForm(teamMemberIdSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -45,7 +45,7 @@ export async function toggleTeamMemberAction(_prev: FormState, formData: FormDat
 
 /** Choose whose name goes on case notes from this browser ("Acting as"). */
 export async function setActorAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(teamMemberIdSchema, formData);
   if (!parsed.ok) return parsed.state;
   const member = await db.query.teamMembers.findFirst({

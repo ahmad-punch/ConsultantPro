@@ -17,7 +17,7 @@ import {
   saveApplicationNotesAction,
   setApplicationStatusAction,
 } from "@/lib/actions/applications";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { APPLICATION_TYPE_LABELS } from "@/lib/db/enums";
 import { getApplication } from "@/lib/queries/applications";
 import { isUuid } from "@/lib/queries/params";
@@ -33,7 +33,7 @@ export default function ApplicationPage({ params }: PageProps<"/admin/network/ap
 }
 
 async function ApplicationView({ params }: { params: PageProps<"/admin/network/applications/[id]">["params"] }) {
-  await requireAdmin();
+  await requirePermission("network.view");
   const { id } = await params;
   if (!isUuid(id)) notFound();
   const a = await getApplication(id);

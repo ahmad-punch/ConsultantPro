@@ -30,7 +30,7 @@ import {
   markMemoDeliveredAction,
   unarchiveCaseAction,
 } from "@/lib/actions/cases";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import {
   CASE_CATEGORY_LABELS,
   CASE_STAGE_LABELS,
@@ -63,7 +63,7 @@ export default function CasePage({ params }: PageProps<"/admin/cases/[id]">) {
 }
 
 async function CaseView({ params }: { params: PageProps<"/admin/cases/[id]">["params"] }) {
-  await requireAdmin();
+  await requirePermission("cases.view");
   const { id } = await params;
   if (!isUuid(id)) notFound();
   const [c, team, partners, ambassadors, cases] = await Promise.all([

@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { ambassadors, channels } from "@/lib/db/schema";
 import { toPreview, validateCsv } from "@/lib/import/validate-rows";
@@ -20,7 +20,7 @@ import { setArchived } from "./archive-helper";
 import { done, failed, parseForm, revalidateAdmin, unexpected } from "./helpers";
 
 export async function createChannelAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(channelSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -33,7 +33,7 @@ export async function createChannelAction(_prev: FormState, formData: FormData):
 }
 
 export async function updateChannelAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(channelUpdateSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, ...values } = parsed.data;
@@ -48,7 +48,7 @@ export async function updateChannelAction(_prev: FormState, formData: FormData):
 
 /** "Log post": stamp lastPostedAt now and set status to posted. */
 export async function logChannelPostAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(z.object({ id: idField() }), formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -66,12 +66,12 @@ export async function logChannelPostAction(_prev: FormState, formData: FormData)
 }
 
 export async function archiveChannelAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.archive");
   return setArchived("channels", formData, true, "channel");
 }
 
 export async function unarchiveChannelAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.archive");
   return setArchived("channels", formData, false, "channel");
 }
 
@@ -103,14 +103,14 @@ const channelKey = (name: string, platform: string) => `${name.trim().toLowerCas
 
 /** Preview: parse and validate pasted CSV without writing anything. */
 export async function previewChannelImportAction(text: string): Promise<ImportPreview> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const { result } = await validateChannelCsv(String(text ?? ""));
   return toPreview(result);
 }
 
 /** Insert the valid, non-duplicate rows. Duplicates are by name + platform. */
 export async function importChannelsAction(text: string): Promise<ImportResult> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const { result, findAmbassador } = await validateChannelCsv(String(text ?? ""));
   if (!result.ok) return { ok: false, error: result.error, imported: 0, skipped: 0 };
   const values = result.parsed

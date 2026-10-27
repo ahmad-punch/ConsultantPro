@@ -17,7 +17,7 @@ import {
   markInvoiceSentAction,
   voidInvoiceAction,
 } from "@/lib/actions/invoices";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { DOCUMENT_TYPE_LABELS } from "@/lib/db/enums";
 import { buildInvoiceModel, getInvoice } from "@/lib/queries/invoices";
 import { isUuid } from "@/lib/queries/params";
@@ -33,7 +33,7 @@ export default function InvoicePage({ params }: PageProps<"/admin/invoices/[id]"
 }
 
 async function InvoiceDetail({ params }: { params: PageProps<"/admin/invoices/[id]">["params"] }) {
-  await requireAdmin();
+  await requirePermission("invoices.view");
   const { id } = await params;
   if (!isUuid(id)) notFound();
   const d = await getInvoice(id);

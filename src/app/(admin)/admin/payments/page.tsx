@@ -10,7 +10,7 @@ import { PaymentForm } from "@/components/admin/forms/payment-form";
 import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import {
   PAYMENT_METHODS,
   PAYMENT_METHOD_LABELS,
@@ -40,7 +40,7 @@ export default function PaymentsPage({ searchParams }: PageProps<"/admin/payment
 }
 
 async function Payments({ searchParams }: { searchParams: PageProps<"/admin/payments">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("payments.view");
   const f = readPaymentFilters(await searchParams);
   const [rows, cases, retainers] = await Promise.all([listPayments(f), getCaseOptions(), getRetainerOptions()]);
   const paidTotal = rows.filter((r) => r.payment.status === "paid").reduce((s, r) => s + r.payment.amountUsd, 0);

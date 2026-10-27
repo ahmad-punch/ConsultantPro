@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/admin/page-header";
 import { CardsSkeleton } from "@/components/admin/skeletons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { getHelpNav, helpRepoPath, searchHelp } from "@/lib/help";
 import { param } from "@/lib/queries/params";
 
@@ -31,7 +31,7 @@ export default function HelpIndexPage({ searchParams }: PageProps<"/admin/help">
 }
 
 async function HelpIndex({ searchParams }: { searchParams: PageProps<"/admin/help">["searchParams"] }) {
-  await requireAdmin();
+  await requirePermission("help.view");
   const q = (param(await searchParams, "q") ?? "").trim();
   const groups = getHelpNav();
 

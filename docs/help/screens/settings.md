@@ -62,3 +62,12 @@ Replaces Deactivate on an inactive person. It puts them back.
 - **Deactivating a person who still has open cases.** They stay on those cases. Reassign the cases first in Case details.
 - **Adding outside advocates as team members.** Use Partners.
 - **Sharing the admin password outside the team.** Anyone with it can read client details. Change it when someone leaves.
+
+### Database mode
+
+The health check at `/api/health` says which database the site uses.
+
+- **Persistent** (`"mode": "persistent"`). The site is connected to a real database (Neon). What you enter is kept.
+- **Demo** (`"mode": "demo"`). No database is connected. An amber "Demo mode" bar shows at the top of every control panel page. The site runs on sample data held in memory. Anything you add disappears when the server restarts, which on Vercel can happen within minutes, and two people may see different data at the same time. Do not enter real client details in demo mode.
+
+To leave demo mode, whoever manages deployment adds `DATABASE_URL` (a free Neon database) in Vercel and redeploys. The steps are in `docs/DEPLOY.md`.

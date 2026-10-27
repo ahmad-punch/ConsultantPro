@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { DOCUMENT_TYPE_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/db/enums";
 import { caseNotes, cases, clients, invoiceItems, invoices, payments } from "@/lib/db/schema";
@@ -35,7 +35,7 @@ async function insertWithNumber(values: InvoiceInsert): Promise<{ id: string; in
 
 /** Create an invoice, receipt or quote with its lines; snapshots client, branding and template. */
 export async function createInvoiceAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(invoiceSchema, formData);
   if (!parsed.ok) return parsed.state;
   const v = parsed.data;
@@ -83,7 +83,7 @@ export async function createInvoiceAction(_prev: FormState, formData: FormData):
 }
 
 export async function markInvoiceSentAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(idOnlySchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -100,7 +100,7 @@ export async function markInvoiceSentAction(_prev: FormState, formData: FormData
 
 /** Mark paid: records a payment, links it, and updates the case payment status. */
 export async function markInvoicePaidAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(markPaidSchema, formData);
   if (!parsed.ok) return parsed.state;
   const v = parsed.data;
@@ -142,7 +142,7 @@ export async function markInvoicePaidAction(_prev: FormState, formData: FormData
 }
 
 export async function voidInvoiceAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(idOnlySchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -159,7 +159,7 @@ export async function voidInvoiceAction(_prev: FormState, formData: FormData): P
 
 /** Copy an invoice as a new draft with today's date and a fresh number. */
 export async function duplicateInvoiceAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(idOnlySchema, formData);
   if (!parsed.ok) return parsed.state;
   try {

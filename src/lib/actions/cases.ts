@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { after } from "next/server";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import {
   CASE_CATEGORY_LABELS,
@@ -61,7 +61,7 @@ async function applyStage(row: Case, stage: CaseStage, extra?: string | null) {
 }
 
 export async function createCaseAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(caseCreateSchema, formData);
   if (!parsed.ok) return parsed.state;
   const v = parsed.data;
@@ -131,7 +131,7 @@ const same = (a: unknown, b: unknown) =>
     : (a ?? null) === (b ?? null);
 
 export async function updateCaseAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(caseUpdateSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, ...values } = parsed.data;
@@ -150,7 +150,7 @@ export async function updateCaseAction(_prev: FormState, formData: FormData): Pr
 }
 
 export async function advanceStageAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(caseIdSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -167,7 +167,7 @@ export async function advanceStageAction(_prev: FormState, formData: FormData): 
 }
 
 export async function setStageAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(caseSetStageSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -183,7 +183,7 @@ export async function setStageAction(_prev: FormState, formData: FormData): Prom
 }
 
 export async function markMemoDeliveredAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(caseIdSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -224,7 +224,7 @@ export async function markMemoDeliveredAction(_prev: FormState, formData: FormDa
 }
 
 export async function closeCaseAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(caseCloseSchema, formData);
   if (!parsed.ok) return parsed.state;
   const v = parsed.data;
@@ -255,7 +255,7 @@ export async function closeCaseAction(_prev: FormState, formData: FormData): Pro
 }
 
 export async function addCaseNoteAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(caseNoteSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -268,11 +268,11 @@ export async function addCaseNoteAction(_prev: FormState, formData: FormData): P
 }
 
 export async function archiveCaseAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.archive");
   return setArchived("cases", formData, true, "case", (id) => addNote(id, "Case archived."));
 }
 
 export async function unarchiveCaseAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.archive");
   return setArchived("cases", formData, false, "case", (id) => addNote(id, "Case restored from the archive."));
 }

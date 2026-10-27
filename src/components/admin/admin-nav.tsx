@@ -22,8 +22,9 @@ import {
   UsersIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -59,17 +60,24 @@ function activeItem(pathname: string | null) {
   );
 }
 
-/** Presentational nav list. `activeHref` null renders nothing highlighted. */
+/**
+ * Presentational nav list. `activeHref` null renders nothing highlighted.
+ * `allowed` (from navForRole in src/lib/rbac.ts) hides items the role cannot
+ * open; omit it to show everything.
+ */
 export function NavList({
   activeHref,
   onNavigate,
+  allowed,
 }: {
   activeHref: string | null;
   onNavigate?: () => void;
+  allowed?: readonly string[];
 }) {
+  const items = allowed ? NAV_ITEMS.filter((item) => allowed.includes(item.href)) : NAV_ITEMS;
   return (
     <nav aria-label="Control panel" className="grid gap-0.5">
-      {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+      {items.map(({ href, label, icon: Icon }) => {
         const active = href === activeHref;
         return (
           <Link
@@ -91,9 +99,31 @@ export function NavList({
   );
 }
 
-export function ActiveNavList() {
+export function ActiveNavList({ allowed }: { allowed?: readonly string[] }) {
   const pathname = usePathname();
-  return <NavList activeHref={activeItem(pathname)?.href ?? null} />;
+  return <NavList activeHref={activeItem(pathname)?.href ?? null} allowed={allowed} />;
+}
+
+/**
+ * Shows a toast when requirePermission() bounced the user to /admin?denied=...,
+ * then drops the query parameter. Render inside <Suspense>.
+ */
+export function DeniedToast() {
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const denied = params.get("denied");
+  useEffect(() => {
+    if (!denied) return;
+    toast.error("Your role cannot open that page or do that action. Ask a super admin if you need it.", {
+      id: "rbac-denied",
+    });
+    const next = new URLSearchParams(params.toString());
+    next.delete("denied");
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [denied, params, pathname, router]);
+  return null;
 }
 
 export function TopTitle() {
@@ -112,7 +142,7 @@ export function LogoutButton({ className }: { className?: string }) {
   );
 }
 
-export function MobileNav({ brand }: { brand: string }) {
+export function MobileNav({ brand, allowed }: { brand: string; allowed?: readonly string[] }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   return (
@@ -127,7 +157,11 @@ export function MobileNav({ brand }: { brand: string }) {
           <SheetTitle className="text-left">{brand}</SheetTitle>
         </SheetHeader>
         <div className="flex-1 overflow-y-auto px-3">
-          <NavList activeHref={activeItem(pathname)?.href ?? null} onNavigate={() => setOpen(false)} />
+          <NavList
+            activeHref={activeItem(pathname)?.href ?? null}
+            onNavigate={() => setOpen(false)}
+            allowed={allowed}
+          />
         </div>
         <div className="border-t p-3">
           <LogoutButton />

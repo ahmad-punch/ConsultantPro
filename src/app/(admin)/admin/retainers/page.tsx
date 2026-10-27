@@ -12,7 +12,7 @@ import { TableSkeleton } from "@/components/admin/skeletons";
 import { StatCard } from "@/components/admin/stat-card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cancelRetainerAction } from "@/lib/actions/retainers";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { RETAINER_TIER_LABELS } from "@/lib/db/enums";
 import { getClientOptions } from "@/lib/queries/options";
 import { listRetainers } from "@/lib/queries/retainers";
@@ -35,7 +35,7 @@ export default function RetainersPage() {
 }
 
 async function Retainers() {
-  await requireAdmin();
+  await requirePermission("retainers.view");
   const [rows, clients] = await Promise.all([listRetainers(), getClientOptions()]);
   const active = rows.filter((r) => r.retainer.status === "active");
   const mrr = active.reduce((s, r) => s + r.retainer.monthlyUsd, 0);

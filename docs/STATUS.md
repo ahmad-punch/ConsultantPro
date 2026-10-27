@@ -17,13 +17,14 @@ Updated: 2026-10-21. One line per item. Move items between sections, do not dele
 - Client touchpoints: status page `/c/[token]`, admin copy-link row, Stripe webhook, Resend emails (intake confirmation, memo delivered), `/api/health`. Lint and own-file typecheck pass.
 - Operations tools: archive/unarchive with Show archived toggles, CSV import for channels and leads, intake category questions into `leads.details`, metrics snapshots with history. Typecheck and own-file lint pass; checked in the browser (archive/unarchive a channel, import 3 channels, property intake details on a lead, save snapshot).
 - Documents and invoicing: branding settings, document templates with defaults per type, invoices/receipts/quotes with Mark sent / Mark paid / Void / Duplicate, PDF via `@react-pdf/renderer` plus a print-view fallback, generated engagement letters and case summaries, CSV exports for nine entities. Lint and typecheck pass; build compiles (prerender stopped on another owner's `/admin/network/applications/[id]` route); checked in the browser (branding save, template edit, invoice from a case, PDF route, cases CSV).
+- Demo mode: deployed without `DATABASE_URL` the app runs an in-memory PGlite, migrated and seeded with demo data once per process; amber bar in the panel, "Demo site" in the footer, `mode` in `/api/health` (decision 0007, `docs/DEPLOY.md`).
 
 ## In progress
 - Nothing in progress.
 
 ## Next
 - Invoicing follow-ups: real company legal name, address, tax number and bank details in Branding (placeholders now); email invoices from the panel; part payments.
-- Deploy to Vercel (free tier), set env vars, connect Neon Postgres. Steps in `docs/DEPLOY.md`.
+- Deploy to Vercel (free tier), set env vars, connect Neon Postgres. Steps in `docs/DEPLOY.md`. Until Neon is connected the deploy runs in demo mode (data resets on cold start); do not take real leads in demo mode.
 - Native Urdu review of guides and posts; lawyer fact-check of guides and legal pages.
 - Stripe payment links through a UK or US entity. Then set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` and add the webhook endpoint (`docs/DEPLOY.md`).
 - Email: verify a sending domain on Resend, set `RESEND_API_KEY` and `EMAIL_FROM`.
@@ -34,6 +35,7 @@ Updated: 2026-10-21. One line per item. Move items between sections, do not dele
 - Control panel follow-ups: CSV import for channels (`marketing/channels.csv`), delete/archive for records entered by mistake, per-person logins if the team grows beyond the founders.
 
 ## Open decisions
+- Database-backed users and a role editor (per-person logins, custom roles). Env-based roles are live; see decision 0006.
 - Partner agreement (`marketing/partner-agreement-template.md`) needs counsel review; ambassador share 10-15% is an assumption.
 - Add `departments` / `serviceAreas` columns to `partner_applications` (now tagged lines in notes) and an edit form for provider departments/service areas.
 - Site placeholders shown as visible `TODO:` markers: advisers on `/about`, legal entity, contact email, Wise/Payoneer confirmation, refund wording, retention periods, liability cap and governing law in the legal drafts.

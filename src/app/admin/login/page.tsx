@@ -7,7 +7,7 @@ import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
 
-// Placeholder login page. The admin-panel agent may restyle it.
+// Email + password sign-in. Roles come from env (decision 0006).
 export default function LoginPage({ searchParams }: PageProps<"/admin/login">) {
   return (
     <main className="flex min-h-dvh items-center justify-center bg-muted/40 px-4">

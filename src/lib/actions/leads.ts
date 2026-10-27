@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { LEAD_STATUSES, LEAD_STATUS_LABELS } from "@/lib/db/enums";
 import { caseNotes, clients, leads } from "@/lib/db/schema";
@@ -32,7 +32,7 @@ import {
 } from "./helpers";
 
 export async function createLeadAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(leadSchema, formData);
   if (!parsed.ok) return parsed.state;
   try {
@@ -45,7 +45,7 @@ export async function createLeadAction(_prev: FormState, formData: FormData): Pr
 }
 
 export async function updateLeadAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(leadUpdateSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, ...values } = parsed.data;
@@ -62,7 +62,7 @@ const statusSchema = z.object({ id: idField(), status: z.enum(LEAD_STATUSES) });
 
 /** Mark contacted / Mark lost / Reopen. Conversion goes through convertLeadAction. */
 export async function setLeadStatusAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(statusSchema, formData);
   if (!parsed.ok) return parsed.state;
   const { id, status } = parsed.data;
@@ -81,7 +81,7 @@ export async function setLeadStatusAction(_prev: FormState, formData: FormData):
  * create one; open a case with the next case number; link the lead.
  */
 export async function convertLeadAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(leadConvertSchema, formData);
   if (!parsed.ok) return parsed.state;
   const input = parsed.data;
@@ -144,12 +144,12 @@ export async function convertLeadAction(_prev: FormState, formData: FormData): P
 }
 
 export async function archiveLeadAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.archive");
   return setArchived("leads", formData, true, "lead");
 }
 
 export async function unarchiveLeadAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.archive");
   return setArchived("leads", formData, false, "lead");
 }
 
@@ -171,13 +171,13 @@ async function validateLeadCsv(text: string) {
 
 /** Preview: parse and validate pasted CSV without writing anything. */
 export async function previewLeadImportAction(text: string): Promise<ImportPreview> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   return toPreview(await validateLeadCsv(String(text ?? "")));
 }
 
 /** Insert the valid rows whose WhatsApp number is not already a lead. */
 export async function importLeadsAction(text: string): Promise<ImportResult> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const result = await validateLeadCsv(String(text ?? ""));
   if (!result.ok) return { ok: false, error: result.error, imported: 0, skipped: 0 };
   const values = result.parsed

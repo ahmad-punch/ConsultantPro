@@ -1,7 +1,7 @@
 import { and, asc, getTableColumns, gte, lt, type SQL } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { toCsv, csvResponse, type CsvValue } from "@/lib/csv";
 import { db } from "@/lib/db";
 import {
@@ -34,7 +34,7 @@ function cell(v: unknown): CsvValue {
 
 /** GET /admin/export/cases?from=2026-10-01&to=2026-10-31 -> CSV (to is inclusive). */
 export async function GET(request: Request, { params }: RouteContext<"/admin/export/[entity]">) {
-  await requireAdmin();
+  await requirePermission("data.export");
   const { entity } = await params;
   if (!(entity in ENTITIES)) return new Response("Unknown export", { status: 404 });
   const table = ENTITIES[entity as Entity] as PgTable & { createdAt: (typeof cases)["createdAt"] };

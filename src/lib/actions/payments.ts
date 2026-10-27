@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/db/enums";
 import { caseNotes, cases, payments } from "@/lib/db/schema";
@@ -17,7 +17,7 @@ import { done, getActorName, parseForm, revalidateAdmin, unexpected } from "./he
  * paymentStatus follows the payment (paid or refunded) and a note is logged.
  */
 export async function createPaymentAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(paymentSchema, formData);
   if (!parsed.ok) return parsed.state;
   const v = parsed.data;

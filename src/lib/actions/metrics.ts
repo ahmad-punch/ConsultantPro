@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
 import { saveMetricsSnapshot } from "@/lib/queries/metrics";
 import { nullableText, requiredDate, type FormState } from "@/lib/validation/fields";
 
@@ -21,7 +21,7 @@ const snapshotSchema = z.object({
  * store them in metrics_snapshots. `to` is the last day shown (inclusive).
  */
 export async function saveMetricsSnapshotAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("records.edit");
   const parsed = parseForm(snapshotSchema, formData);
   if (!parsed.ok) return parsed.state;
   const from = startOfDay(parsed.data.from);

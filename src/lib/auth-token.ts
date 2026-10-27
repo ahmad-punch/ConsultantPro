@@ -6,8 +6,21 @@
 export const ADMIN_COOKIE = "rasta_admin";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 14; // 14 days
 
+/** Control-panel roles. Permissions per role live in src/lib/rbac.ts. */
+export const ROLES = ["super_admin", "staff", "viewer"] as const;
+export type Role = (typeof ROLES)[number];
+
+export function isRole(value: unknown): value is Role {
+  return typeof value === "string" && (ROLES as readonly string[]).includes(value);
+}
+
 export type SessionPayload = {
   sub: "admin";
+  role: Role;
+  /** Lower-cased sign-in email. */
+  email: string;
+  /** Display name (email local part for env-based users). */
+  name: string;
   /** Issued at, seconds since epoch. */
   iat: number;
   /** Expires at, seconds since epoch. */
@@ -80,6 +93,8 @@ export async function verifySessionToken(
     if (!valid) return null;
     const payload = JSON.parse(new TextDecoder().decode(fromBase64Url(body))) as SessionPayload;
     if (payload.sub !== "admin" || typeof payload.exp !== "number") return null;
+    // Tokens from before roles existed carry no role: force a fresh sign-in.
+    if (!isRole(payload.role) || typeof payload.email !== "string") return null;
     if (payload.exp * 1000 <= Date.now()) return null;
     return payload;
   } catch {
