@@ -32,3 +32,4 @@ Things that were not obvious and cost time. Newest first. Each entry: what happe
 
 ## A client component using usePathname in a layout needs its own Suspense (2026-10-21)
 `cacheComponents` prerenders dynamic routes; a tabs bar in `admin/network/layout.tsx` that called `usePathname()` failed `pnpm build` on `/admin/network/applications/[id]` ("URL data outside of <Suspense>") although dev worked. Wrap such client components in `<Suspense>` in the layout.
+- **2026-10-28, dependencies installed but not declared.** An agent ran the PDF library install in a way that left it in node_modules but not in package.json or pnpm-lock.yaml, so the Vercel build failed with Module not found. Before pushing, run `rm -rf node_modules && pnpm install --frozen-lockfile && pnpm build` to reproduce the clean build Vercel does.
